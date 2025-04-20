@@ -1,4 +1,4 @@
-FUCKUP² — First Universal Cybernetic-Kinetic-Ultramicro-Programmer
+# FUCKUP² — First Universal Cybernetic-Kinetic-Ultramicro-Programmer
 An automated cyber-occult oracle machine inspired by Robert Anton Wilson's Illuminatus! trilogy.
 
 ## 📜 Project Overview
