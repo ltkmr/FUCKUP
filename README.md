@@ -28,6 +28,7 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 
 ## ⚙️ System Architecture
 
+```
 [ Daily Data Sources ]
           │
           ▼
@@ -42,6 +43,7 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
           ├── 🖨️ Print Prophecy
           ├── 🗃️ Archive Prophecy
           └── 🌐 Update Web Archive (static HTML)
+```
 
 ## Technologies:
 
@@ -57,40 +59,46 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 
 # 🚀 Installation
 Clone the repository:
-
+```
 bash
 git clone https://your-repo-url.git
 cd fuckup2
 Create and activate Python virtual environment:
+```
 
+```
 bash
 python3 -m venv venv
 source venv/bin/activate
 Install requirements:
+```
 
+```
 pip install -r requirements.txt
 Set up cronjob (optional, for daily automation):
-
+```
+```
 crontab -e
 # Add:
 0 7 * * * /path/to/venv/bin/python /path/to/fuckup2/oracle/daily_runner.py >> /path/to/fuckup2/oracle/cron.log 2>&1
 Enjoy daily automated prophecies!
-
+```
 🧩 Usage
 To manually run the oracle:
-
+```
 bash
 source venv/bin/activate
 python oracle/daily_runner.py
+```
 To regenerate the web archive:
-
+```
 bash
 python oracle/generate_html.py
 Archives are stored in /archive/.
 Web pages are generated in /web/.
-
+```
 ## 📂 Project Structure
-bash
+```
 fuckup2/
 ├── oracle/
 │   ├── daily_runner.py       # Main oracle script
@@ -101,7 +109,7 @@ fuckup2/
 │   └── style.css             # Styling for the web archive
 ├── venv/                     # Virtual environment (Python)
 └── README.md                 # This document
-
+```
 ## 🚀 Roadmap
  ✅ Automated daily oracle runs
 
