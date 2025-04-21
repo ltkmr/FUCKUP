@@ -17,9 +17,11 @@ FEEDS = {
     # Add more if you like!
 }
 
+
 def ensure_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
 
 def fetch_feed(name, url, output_dir):
     print(f"🔍 Fetching {name}...")

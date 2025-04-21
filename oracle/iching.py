@@ -68,19 +68,24 @@ HEXAGRAMS = {
     64: ("Before Completion", "Approaching success, remaining alert."),
 }
 
+
 def throw_coins():
     return [secrets.choice([2, 3]) for _ in range(6)]  # bottom to top
+
 
 def render_hexagram(lines):
     return "\n".join(["⚋⚋" if l == 2 else "⚊⚊" for l in reversed(lines)])  # top to bottom
 
+
 def hexagram_number(lines):
     # Convert lines (2 or 3) to binary: 2 -> 0, 3 -> 1
-    binary = ''.join(['0' if l == 2 else '1' for l in reversed(lines)])  # top to bottom
+    binary = "".join(["0" if l == 2 else "1" for l in reversed(lines)])  # top to bottom
     return int(binary, 2) + 1  # Hexagrams are numbered 1–64
+
 
 def get_hexagram_info(number):
     return HEXAGRAMS.get(number, ("Unknown Hexagram", "No interpretation available."))
+
 
 if __name__ == "__main__":
     lines = throw_coins()
@@ -91,4 +96,3 @@ if __name__ == "__main__":
     print(f"Today's Hexagram: #{number} - {name}")
     print(hexagram)
     print(f"Meaning: {meaning}")
-

@@ -11,14 +11,14 @@ DEBUG_MODE = False  # Set to False for normal daily runs
 MODEL_NAME = "gemma3:12b"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
-    compression_system_prompt,
-    compression_instruction,
-    analyst_system_prompt,
-    analyst_instruction,
-    oracle_system_prompt,
-    oracle_instruction,
-    advisor_system_prompt,
-    advisor_instruction,
+    ADVISOR_INSTRUCTION,
+    ADVISOR_SYSTEM_PROMPT,
+    ANALYST_INSTRUCTION,
+    ANALYST_SYSTEM_PROMPT,
+    COMPRESSION_INSTRUCTION,
+    COMPRESSION_SYSTEM_PROMPT,
+    ORACLE_INSTRUCTION,
+    ORACLE_SYSTEM_PROMPT,
 )
 
 # Prepare directories
@@ -59,17 +59,16 @@ def generate_iching():
     print(f"Meaning: {meaning}\n")
     return lines, hexagram_text, number, name, meaning
 
+
 # Step 4: LLM helper
 
 def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
     response = ollama.chat(
         model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
+        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
     )
-    return response['message']['content'].strip()
+    return response["message"]["content"].strip()
+
 
 # Step 5: Format printout
 def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation):
@@ -95,18 +94,20 @@ Action recommendation:
 {advisor_recommendation}
 ==========================================
 """
-    
+
     # 🛠️ Clean up lines and add form feed for printer
     safe_header = "\n".join(line.strip() for line in header.splitlines())
     return safe_header + "\n\f"
 
+
 # Step 6: Clean up the LLM output for printer lp compatibility
 def sanitize_for_printer(text):
     # Normalize Unicode to remove fancy characters
-    normalized = unicodedata.normalize('NFKD', text)
+    normalized = unicodedata.normalize("NFKD", text)
     # Encode to ASCII bytes, ignore errors, then decode back to string
-    ascii_text = normalized.encode('ascii', 'ignore').decode('ascii')
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
     return ascii_text
+
 
 # Step 7: Archive the prophecy
 def archive_prophecy(text):
@@ -116,25 +117,28 @@ def archive_prophecy(text):
         f.write(text)
     print(f"📜 Prophecy archived at {filename}")
 
+
 # Step 8: Print the prophecy
 def print_prophecy(text):
     try:
-        subprocess.run(['lp'], input=text.encode('utf-8'), check=True)
+        subprocess.run(["lp"], input=text.encode("utf-8"), check=True)
         print("🖨️ Prophecy sent to printer.")
     except Exception as e:
         print(f"⚠️ Printer error: {e}")
+
 
 # Step 9: Show folder structure
 def print_folder_structure(base_path):
     print("\n📂 Current Data Directory Structure:")
     for root, dirs, files in os.walk(base_path):
         level = root.replace(base_path, '').count(os.sep)
-        indent = ' ' * 4 * level
+        indent = " " * 4 * level
         print(f"{indent}{os.path.basename(root)}/")
-        sub_indent = ' ' * 4 * (level + 1)
+        sub_indent = " " * 4 * (level + 1)
         for f in files:
             print(f"{sub_indent}{f}")
     print()
+
 
 # Helpers
 def clean_conversational_tails(text):
@@ -148,7 +152,7 @@ def clean_conversational_tails(text):
         "I'm here if you need more information."
         "Do you want me to elaborate on any of these points or focus on a specific aspect of the news?"
         "I hope this summary is helpful!"
-        "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!"
+        "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!",
     ]
     lines = text.splitlines()
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
@@ -172,11 +176,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
     else:
         user_prompt = f"{instruction}\n\n{dynamic_input}"
         try:
-            output = run_llm(
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                model_name=model_name
-            )
+            output = run_llm(system_prompt=system_prompt, user_prompt=user_prompt, model_name=model_name)
         except Exception as e:
             print(f"⚠️ Error in {agent_name}: {e}")
             output = debug_message
@@ -196,6 +196,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
 def safe_truncate(text, max_chars=100000):
     """Truncate text to avoid overloading model input."""
     return text[:max_chars]
+
 
 # Main runner
 def main():
@@ -234,11 +235,11 @@ def main():
 
         compressed = run_agent(
             agent_label,
-            compression_system_prompt,
-            compression_instruction,
+            COMPRESSION_SYSTEM_PROMPT,
+            COMPRESSION_INSTRUCTION,
             safe_input,
             model_name="dolphin3:latest",
-            debug_message=f"DEBUG: Sample compression for {filename}"
+            debug_message=f"DEBUG: Sample compression for {filename}",
         )
         if not DEBUG_MODE:
             print(f"📏 {filename} → Input: {len(safe_input)} chars | Output: {len(compressed)} chars")
@@ -262,39 +263,33 @@ def main():
     # Step 4: Run the rest of the Agents.
     analyst_summary = run_agent(
         "🤖 Analyst Agent",
-        analyst_system_prompt,
-        analyst_instruction,
+        ANALYST_SYSTEM_PROMPT,
+        ANALYST_INSTRUCTION,
         compressed_data_summary,
         model_name="dolphin3:latest",  # ✅ Faster, leaner model
-        debug_message="DEBUG: Sample analyst summary."
+        debug_message="DEBUG: Sample analyst summary.",
     )
 
-    oracle_dynamic_input = (
-        f"Hexagram #{number}: {name}\nMeaning: {meaning}\n\n"
-        f"Analyst Summary:\n{analyst_summary}"
-    )
+    oracle_dynamic_input = f"Hexagram #{number}: {name}\nMeaning: {meaning}\n\n" f"Analyst Summary:\n{analyst_summary}"
 
     oracle_message = run_agent(
         "🧙 Oracle Agent",
-        oracle_system_prompt,
-        oracle_instruction,
+        ORACLE_SYSTEM_PROMPT,
+        ORACLE_INSTRUCTION,
         oracle_dynamic_input,
         model_name="gemma3:12b",  # ✅ Creative, rich model
-        debug_message="DEBUG: Sample Oracle Message."
+        debug_message="DEBUG: Sample Oracle Message.",
     )
 
-    advisor_dynamic_input = (
-        f"[ANALYST SUMMARY]\n{analyst_summary}\n\n"
-        f"[ORACLE PROPHECY]\n{oracle_message}"
-    )
+    advisor_dynamic_input = f"[ANALYST SUMMARY]\n{analyst_summary}\n\n" f"[ORACLE PROPHECY]\n{oracle_message}"
 
     advisor_recommendation = run_agent(
         "🧭 Advisor Agent",
-        advisor_system_prompt,
-        advisor_instruction,
+        ADVISOR_SYSTEM_PROMPT,
+        ADVISOR_INSTRUCTION,
         advisor_dynamic_input,
         model_name="gemma3:12b",  # ✅ Authoritative output
-        debug_message="DEBUG: Sample Advisor Recommendation."
+        debug_message="DEBUG: Sample Advisor Recommendation.",
     )
     # Format, archive, and print
     formatted_output = format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation)

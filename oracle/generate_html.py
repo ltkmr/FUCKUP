@@ -46,8 +46,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 def create_index(pages):
     links_html = "\n".join(
-        LINK_TEMPLATE.format(filename=page, display_name=page.replace(".html", ""))
-        for page in pages
+        LINK_TEMPLATE.format(filename=page, display_name=page.replace(".html", "")) for page in pages
     )
 
     index_html = INDEX_TEMPLATE.format(links=links_html)
@@ -74,15 +73,6 @@ def create_page(filename):
     print(f"✅ Generated page: {output_filename}")
     return output_filename
 
-    # Prepare basic HTML structure
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("""<head><title>FUCKUP² Oracle Archive</title><link rel="stylesheet" type="text/css" href="style.css"></head><body>\n""")
-        f.write(f"<pre>{content}</pre>\n")
-        f.write('<p><a href="index.html">Back to archive index</a></p>\n')
-        f.write("</body></html>\n")
-
-    print(f"✅ Generated page: {output_filename}")
-    return output_filename
 
 def main():
     print("🌐 Generating web archive...")
@@ -99,6 +89,6 @@ def main():
 
     print("🎉 Web archive generation complete!")
 
+
 if __name__ == "__main__":
     main()
-
