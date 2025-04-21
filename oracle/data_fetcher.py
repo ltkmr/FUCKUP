@@ -2,15 +2,18 @@ import os
 import datetime
 import feedparser
 
-# Configurable feeds — we can expand later
+# Configurable feeds:
 FEEDS = {
-    "world_news_BBC": "http://feeds.bbci.co.uk/news/world/rss.xml",
-    "world_news_nyt": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    # "world_news_BBC": "http://feeds.bbci.co.uk/news/world/rss.xml",
+    # "world_news_nyt": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    "the_guardian_world": "https://www.theguardian.com/world/rss",
     "sky_this_week": "https://www.astronomy.com/tags/sky-this-week/feed/",
     "cnn_money": "http://rss.cnn.com/rss/money_news_economy.rss",
     "the_guardian_science": "https://www.theguardian.com/science/rss",
     "NPR": "https://feeds.npr.org/1019/rss.xml",
-    "NPR": "https://feeds.npr.org/1001/rss.xml"
+    "NPR": "https://feeds.npr.org/1001/rss.xml",
+    "DW_EU": "https://rss.dw.com/rdf/rss-en-eu",
+    "DW_BIZ": "https://rss.dw.com/rdf/rss-en-bus"
     # Add more if you like!
 }
 

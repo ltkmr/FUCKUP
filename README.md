@@ -10,21 +10,21 @@ FUCKUP² is an automated, self-operating oracle system:
 
 🧩 Passes data through a chain of AI agents:
 
-Analyst Agent: Processes daily data
+   - Compression Stage: Compression of incomming RSS feeds
 
-Oracle Agent: Interprets divination + data cryptically
+   - Analyst Agent: Processes daily data
 
-Advisor Agent: Suggests action (enigmatic, of course!)
+   - Oracle Agent: Interprets divination + data cryptically
 
-🖨️ Prints the daily prophecy
+   - Advisor Agent: Suggests action (enigmatic, of course!)
+
+🖨️ Prints the daily prophecy (lp)
 
 🗃️ Archives each reading
 
 🌐 Automatically updates a web archive for browsing prophecies
 
 The system runs fully automated, daily, via cron.
-
-Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 
 ## ⚙️ System Architecture
 
@@ -60,37 +60,37 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 
 🗓️ Scheduled via cron
 
-# 🚀 Installation
+## 🚀 Installation
 Clone the repository, create and activate Python virtual environment:
 
-
 ```
-bash
 python3 -m venv venv
 source venv/bin/activate
-Install requirements:
 ```
+Install requirements:
 
 ```
 pip install -r requirements.txt
-Set up cronjob (optional, for daily automation):
 ```
+
+Set up cronjob (optional, for daily automation):
+
 ```
 crontab -e
 # Add:
 0 7 * * * /path/to/venv/bin/python /path/to/fuckup2/oracle/daily_runner.py >> /path/to/fuckup2/oracle/cron.log 2>&1
-Enjoy daily automated prophecies!
 ```
-🧩 Usage
+
+## 🧩 Usage
 To manually run the oracle:
 ```
-bash
 source venv/bin/activate
 python oracle/daily_runner.py
 ```
+
+
 To regenerate the web archive:
 ```
-bash
 python oracle/generate_html.py
 Archives are stored in /archive/.
 Web pages are generated in /web/.
@@ -127,7 +127,8 @@ fuckup2/
 
  🎨 Web archive styling improvements
 
-📝 License
+📝 License:
+
 All rights wronged.
 
 👤 Author

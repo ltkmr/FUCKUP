@@ -59,15 +59,6 @@ def generate_iching():
     print(f"Meaning: {meaning}\n")
     return lines, hexagram_text, number, name, meaning
 
-#  Save compressed summary for inspection
-    compressed_log = os.path.join(raw_data_dir, "compressed_summary.txt")
-    with open(compressed_log, "w", encoding="utf-8") as f:
-        f.write(full_summary)
-    print(f"🗂️ Compressed summaries saved to {compressed_log}")
-
-    return full_summary
-
-
 # Step 4: LLM helper
 
 def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
@@ -94,13 +85,13 @@ Hexagram #{number}: {name} {hexagram_unicode}
 Meaning: {meaning}
 
 ------------------------------------------
-1. Analyst Summary:
+Summary of current events:
 {analyst_summary}
 
-2. Oracle Prophecy:
+Hollistic I-Ging interpretation:
 {oracle_message}
 
-3. Advisor Recommendation:
+Action recommendation:
 {advisor_recommendation}
 ==========================================
 """
@@ -157,6 +148,7 @@ def clean_conversational_tails(text):
         "I'm here if you need more information."
         "Do you want me to elaborate on any of these points or focus on a specific aspect of the news?"
         "I hope this summary is helpful!"
+        "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!"
     ]
     lines = text.splitlines()
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
@@ -248,7 +240,8 @@ def main():
             model_name="dolphin3:latest",
             debug_message=f"DEBUG: Sample compression for {filename}"
         )
-
+        if not DEBUG_MODE:
+            print(f"📏 {filename} → Input: {len(safe_input)} chars | Output: {len(compressed)} chars")
         compressed_chunks.append(f"--- {filename} ---\n{compressed.strip()}\n")
 
     # Merge all compressed chunks into one summary
