@@ -55,12 +55,11 @@ def collect_data():
 def generate_iching() -> Tuple[int, str, str]:
     print("🧙 Generating I-Ging hexagram...")
     lines = throw_coins()
-    hexagram_text = render_hexagram(lines)
     number = hexagram_number(lines)
     name, meaning = get_hexagram_info(number)
     print(f"✨ Today's Hexagram: #{number} - {name}")
     print(f"Meaning: {meaning}\n")
-    return lines, hexagram_text, number, name, meaning
+    return number, name, meaning
 
 
 # Step 4: LLM helper
@@ -217,7 +216,7 @@ def main():
     # Run agents
     # Step 1: Collect data and prepare hexagram
     collect_data()
-    lines, hexagram_text, number, name, meaning = generate_iching()
+    number, name, meaning = generate_iching()
 
     # Step 2: Prepare data input (read raw feed files)
     print("🧩 Preparing raw data for compression...")
