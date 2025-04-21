@@ -32,6 +32,9 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 [ Daily Data Sources ]
           │
           ▼
+[ Compression Stage ] — Compresses incomming feeds to avoid congesting the Analyst's attenion window.
+          │
+          ▼
 [ Analyst Agent ] — Summarizes data
           │
           ▼
@@ -58,13 +61,8 @@ Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 🗓️ Scheduled via cron
 
 # 🚀 Installation
-Clone the repository:
-```
-bash
-git clone https://your-repo-url.git
-cd fuckup2
-Create and activate Python virtual environment:
-```
+Clone the repository, create and activate Python virtual environment:
+
 
 ```
 bash
