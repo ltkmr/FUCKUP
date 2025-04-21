@@ -1,6 +1,8 @@
 # Ignore Python cache and virtualenv
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 venv/
 .env
 
@@ -9,7 +11,9 @@ venv/
 logs/
 archive/
 data/
-web/
+
+# Ignore generated HTML pages
+web/**/*.html
 
 # Model files or temp data
 *.bin
@@ -17,4 +21,3 @@ web/
 
 # OS cruft
 .DS_Store
-
