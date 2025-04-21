@@ -34,25 +34,6 @@ COMPRESSION_INSTRUCTION = (
 # ANALYST AGENT PROMPTS
 # =========================
 
-# analyst_system_prompt = (
-#    "You are a language model trained to analyze factual news data. "
-#   "You identify patterns, correlations, and notable themes between news stories. "
-#   "You do not comment on the format or context. "
-#   "You do not explain your task. "
-#   "You write with clinical objectivity, not conversational tone."
-# )
-
-# analyst_instruction = (
-#    "[ROLE: Pattern Analyst — Focused, Neutral, Non-conversational]\n\n"
-#    "You are reviewing a set of factual news summaries and other datasets from different sources. "
-#    "Your task is to identify meaningful patterns, connections, and tensions between the items. "
-#    "Do not describe the format or type of the input. "
-#    "Do not mention that these are news items. "
-#    "Only refer to the *substance* of the content.\n\n"
-#    "Summarize the most important themes or clusters of meaning that emerge. "
-#    "Use neutral, analytical language. Avoid conversational tone, rhetorical questions, or meta-comments."
-# )
-
 ANALYST_SYSTEM_PROMPT = (
     "You are a language model trained to analyze factual news data for even faint hints of conspiratorial pattern. "
     "You identify conspiratorial patterns, correlations, and notable themes between news stories,"
