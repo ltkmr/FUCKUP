@@ -1,5 +1,5 @@
-import os
-import datetime
+from pathlib import Path
+from typing import List
 
 # Templates
 
@@ -37,58 +37,48 @@ INDEX_TEMPLATE = """<!DOCTYPE html>
 LINK_TEMPLATE = '<li><a href="{filename}">{display_name}</a></li>'
 
 # Paths
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-archive_dir = os.path.join(project_dir, "archive")
-output_dir = os.path.join(project_dir, "web")
+project_dir = Path(__file__).parent.parent
+archive_dir = project_dir / "archive"
+output_dir = project_dir / "web"
 
 # Make sure output directory exists
-os.makedirs(output_dir, exist_ok=True)
+output_dir.mkdir(exist_ok=True)
 
-def create_index(pages):
-    links_html = "\n".join(
-        LINK_TEMPLATE.format(filename=page, display_name=page.replace(".html", ""))
-        for page in pages
-    )
+
+def create_index(pages: List[Path]):
+    links_html = "\n".join(LINK_TEMPLATE.format(filename=page, display_name=page.stem) for page in pages)
 
     index_html = INDEX_TEMPLATE.format(links=links_html)
 
-    index_path = os.path.join(output_dir, "index.html")
-    with open(index_path, "w", encoding="utf-8") as f:
+    index_path = output_dir / "index.html"
+    with index_path.open("w", encoding="utf-8") as f:
         f.write(index_html)
 
     print(f"✅ Index page generated at {index_path}")
 
-def create_page(filename):
-    archive_path = os.path.join(archive_dir, filename)
-    output_filename = filename.replace(".txt", ".html")
-    output_path = os.path.join(output_dir, output_filename)
 
-    with open(archive_path, "r", encoding="utf-8") as src:
+def create_page(filename: Path) -> Path:
+    archive_path = archive_dir / filename
+    output_filename = filename.with_suffix(".html")
+    output_path = output_dir / output_filename
+
+    with archive_path.open("r", encoding="utf-8") as src:
         content = src.read()
 
     page_html = PAGE_TEMPLATE.format(title="FUCKUP² Prophecy", content=content)
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    with output_path.open("w", encoding="utf-8") as f:
         f.write(page_html)
 
     print(f"✅ Generated page: {output_filename}")
     return output_filename
 
-    # Prepare basic HTML structure
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write("""<head><title>FUCKUP² Oracle Archive</title><link rel="stylesheet" type="text/css" href="style.css"></head><body>\n""")
-        f.write(f"<pre>{content}</pre>\n")
-        f.write('<p><a href="index.html">Back to archive index</a></p>\n')
-        f.write("</body></html>\n")
-
-    print(f"✅ Generated page: {output_filename}")
-    return output_filename
 
 def main():
     print("🌐 Generating web archive...")
 
     # Find all archive files
-    archive_files = [f for f in os.listdir(archive_dir) if f.endswith(".txt")]
+    archive_files = [f for f in archive_dir.iterdir() if f.endswith(".txt")]
     archive_files.sort(reverse=True)  # Show latest first
 
     # Generate HTML pages
@@ -99,6 +89,6 @@ def main():
 
     print("🎉 Web archive generation complete!")
 
+
 if __name__ == "__main__":
     main()
-

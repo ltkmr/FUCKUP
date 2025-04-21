@@ -1,4 +1,5 @@
 import secrets
+from typing import List, Tuple
 
 # Hexagram data: number, name, meaning
 HEXAGRAMS = {
@@ -68,19 +69,24 @@ HEXAGRAMS = {
     64: ("Before Completion", "Approaching success, remaining alert."),
 }
 
-def throw_coins():
+
+def throw_coins() -> List[int]:
     return [secrets.choice([2, 3]) for _ in range(6)]  # bottom to top
 
-def render_hexagram(lines):
+
+def render_hexagram(lines: List[int]) -> str:
     return "\n".join(["⚋⚋" if l == 2 else "⚊⚊" for l in reversed(lines)])  # top to bottom
 
-def hexagram_number(lines):
+
+def hexagram_number(lines: List[int]) -> int:
     # Convert lines (2 or 3) to binary: 2 -> 0, 3 -> 1
-    binary = ''.join(['0' if l == 2 else '1' for l in reversed(lines)])  # top to bottom
+    binary = "".join(["0" if l == 2 else "1" for l in reversed(lines)])  # top to bottom
     return int(binary, 2) + 1  # Hexagrams are numbered 1–64
 
-def get_hexagram_info(number):
+
+def get_hexagram_info(number: int) -> Tuple[str, str]:
     return HEXAGRAMS.get(number, ("Unknown Hexagram", "No interpretation available."))
+
 
 if __name__ == "__main__":
     lines = throw_coins()
@@ -91,4 +97,3 @@ if __name__ == "__main__":
     print(f"Today's Hexagram: #{number} - {name}")
     print(hexagram)
     print(f"Meaning: {meaning}")
-

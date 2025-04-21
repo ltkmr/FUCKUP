@@ -1,31 +1,26 @@
-import os
-import datetime
+from datetime import date
+from pathlib import Path
+
 import feedparser
 
 # Configurable feeds:
 FEEDS = {
-    # "world_news_BBC": "http://feeds.bbci.co.uk/news/world/rss.xml",
-    # "world_news_nyt": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
     "the_guardian_world": "https://www.theguardian.com/world/rss",
     "sky_this_week": "https://www.astronomy.com/tags/sky-this-week/feed/",
     "cnn_money": "http://rss.cnn.com/rss/money_news_economy.rss",
     "the_guardian_science": "https://www.theguardian.com/science/rss",
-    "NPR": "https://feeds.npr.org/1019/rss.xml",
     "NPR": "https://feeds.npr.org/1001/rss.xml",
     "DW_EU": "https://rss.dw.com/rdf/rss-en-eu",
-    "DW_BIZ": "https://rss.dw.com/rdf/rss-en-bus"
+    "DW_BIZ": "https://rss.dw.com/rdf/rss-en-bus",
     # Add more if you like!
 }
 
-def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
-def fetch_feed(name, url, output_dir):
+def fetch_feed(name: str, url: str, output_dir: Path):
     print(f"🔍 Fetching {name}...")
     feed = feedparser.parse(url)
-    output_file = os.path.join(output_dir, f"{name}.txt")
-    with open(output_file, "w", encoding="utf-8") as f:
+    output_file = output_dir / f"{name}.txt"
+    with output_file.open("w", encoding="utf-8") as f:
         for entry in feed.entries:
             f.write(f"Title: {entry.get('title', 'No title')}\n")
             f.write(f"Link: {entry.get('link', 'No link')}\n")
@@ -34,8 +29,9 @@ def fetch_feed(name, url, output_dir):
             f.write("-" * 40 + "\n")
     print(f"✅ Saved {name} feed to {output_file}")
 
-def main(target_directory):
-    ensure_dir(target_directory)
+
+def main(target_directory: Path):
+    target_directory.mkdir(exist_ok=True)
 
     for name, url in FEEDS.items():
         try:
@@ -45,8 +41,9 @@ def main(target_directory):
 
     print("🎉 Data collection complete!")
 
+
 # Optional: Support standalone running for testing
 if __name__ == "__main__":
-    today = datetime.date.today().isoformat()
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "data", today, "raw")
+    today = date.today().isoformat()
+    base_dir = Path(__file__).parent.parent / "data" / today / "raw"
     main(base_dir)
