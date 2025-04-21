@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 # Templates
 
@@ -44,6 +45,7 @@ output_dir = project_dir / "web"
 output_dir.mkdir(exist_ok=True)
 
 
+def create_index(pages: List[Path]):
     links_html = "\n".join(LINK_TEMPLATE.format(filename=page, display_name=page.stem) for page in pages)
 
     index_html = INDEX_TEMPLATE.format(links=links_html)
@@ -54,6 +56,8 @@ output_dir.mkdir(exist_ok=True)
 
     print(f"✅ Index page generated at {index_path}")
 
+
+def create_page(filename: Path) -> Path:
     archive_path = archive_dir / filename
     output_filename = filename.with_suffix(".html")
     output_path = output_dir / output_filename

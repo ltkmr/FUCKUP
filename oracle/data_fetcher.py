@@ -19,7 +19,7 @@ FEEDS = {
 }
 
 
-def fetch_feed(name, url, output_dir):
+def fetch_feed(name: str, url: str, output_dir: Path):
     print(f"🔍 Fetching {name}...")
     feed = feedparser.parse(url)
     output_file = output_dir / f"{name}.txt"
@@ -32,6 +32,8 @@ def fetch_feed(name, url, output_dir):
             f.write("-" * 40 + "\n")
     print(f"✅ Saved {name} feed to {output_file}")
 
+
+def main(target_directory: Path):
     target_directory.mkdir(exist_ok=True)
 
     for name, url in FEEDS.items():

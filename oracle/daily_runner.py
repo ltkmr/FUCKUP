@@ -2,13 +2,14 @@ import subprocess
 import unicodedata
 from datetime import datetime
 from pathlib import Path
+from typing import Tuple
 
 import ollama
 from data_fetcher import main as fetch_data
 from iching import get_hexagram_info, hexagram_number, render_hexagram, throw_coins
 
 DEBUG_MODE = False  # Set to False for normal daily runs
-MODEL_NAME = "gemma3:12b"  # Change this to "llama3", "custom-model", etc.
+DEFAULT_MODEL_NAME = "gemma3:12b"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
     ADVISOR_INSTRUCTION,
@@ -51,7 +52,7 @@ def collect_data():
 
 
 # Step 2: Generate I-Ging hexagram
-def generate_iching():
+def generate_iching() -> Tuple[int, str, str]:
     print("🧙 Generating I-Ging hexagram...")
     lines = throw_coins()
     hexagram_text = render_hexagram(lines)
@@ -63,8 +64,7 @@ def generate_iching():
 
 
 # Step 4: LLM helper
-
-def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
+def run_llm(system_prompt: str, user_prompt: str, model_name: str = DEFAULT_MODEL_NAME) -> str:
     response = ollama.chat(
         model=model_name,
         messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
@@ -73,6 +73,9 @@ def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
 
 
 # Step 5: Format printout
+def format_printout(
+    number: int, name: str, meaning: str, analyst_summary: str, oracle_message: str, advisor_recommendation: str
+):
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     hexagram_unicode = chr(0x4DC0 + (number - 1))
     header = f"""
@@ -102,7 +105,7 @@ Action recommendation:
 
 
 # Step 6: Clean up the LLM output for printer lp compatibility
-def sanitize_for_printer(text):
+def sanitize_for_printer(text: str) -> str:
     # Normalize Unicode to remove fancy characters
     normalized = unicodedata.normalize("NFKD", text)
     # Encode to ASCII bytes, ignore errors, then decode back to string
@@ -111,7 +114,7 @@ def sanitize_for_printer(text):
 
 
 # Step 7: Archive the prophecy
-def archive_prophecy(text):
+def archive_prophecy(text: str):
     timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
     filename = archive_dir / f"{timestamp}.txt"
     with filename.open("w", encoding="utf-8") as f:
@@ -120,7 +123,7 @@ def archive_prophecy(text):
 
 
 # Step 8: Print the prophecy
-def print_prophecy(text):
+def print_prophecy(text: str):
     try:
         subprocess.run(["lp"], input=text.encode("utf-8"), check=True)
         print("🖨️ Prophecy sent to printer.")
@@ -129,7 +132,7 @@ def print_prophecy(text):
 
 
 # Step 9: Show folder structure
-def print_folder_structure(base_path):
+def print_folder_structure(base_path: Path):
     print("\n📂 Current Data Directory Structure:")
     for root, _, files in base_path.walk():
         level = len(base_path.relative_to(root).parts)
@@ -142,7 +145,7 @@ def print_folder_structure(base_path):
 
 
 # Helpers
-def clean_conversational_tails(text):
+def clean_conversational_tails(text: str):
     """Remove common conversational endings and phrases."""
     endings = [
         "Let me know if you'd like me to elaborate.",
@@ -159,7 +162,15 @@ def clean_conversational_tails(text):
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
     return "\n".join(filtered_lines).strip()
 
-def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name, debug_message="DEBUG: Sample output."):
+
+def run_agent(
+    agent_name: str,
+    system_prompt: str,
+    instruction: str,
+    dynamic_input: str,
+    model_name: str,
+    debug_message: str = "DEBUG: Sample output.",
+):
     print(f"{agent_name} is processing...")
     print(f"🧩 {agent_name} input length: {len(dynamic_input)} characters")
 
@@ -196,8 +207,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
     return output
 
 
-
-def safe_truncate(text, max_chars=100000):
+def safe_truncate(text: str, max_chars: int = 100000):
     """Truncate text to avoid overloading model input."""
     return text[:max_chars]
 
@@ -294,7 +304,7 @@ def main():
         debug_message="DEBUG: Sample Advisor Recommendation.",
     )
     # Format, archive, and print
-    formatted_output = format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation)
+    formatted_output = format_printout(number, name, meaning, analyst_summary, oracle_message, advisor_recommendation)
     safe_output = sanitize_for_printer(formatted_output)
     archive_prophecy(formatted_output)
     print_prophecy(safe_output)
