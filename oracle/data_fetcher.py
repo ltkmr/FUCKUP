@@ -1,5 +1,6 @@
-import os
-import datetime
+from datetime import date
+from pathlib import Path
+
 import feedparser
 
 # Configurable feeds:
@@ -18,16 +19,11 @@ FEEDS = {
 }
 
 
-def ensure_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
 def fetch_feed(name, url, output_dir):
     print(f"🔍 Fetching {name}...")
     feed = feedparser.parse(url)
-    output_file = os.path.join(output_dir, f"{name}.txt")
-    with open(output_file, "w", encoding="utf-8") as f:
+    output_file = output_dir / f"{name}.txt"
+    with output_file.open("w", encoding="utf-8") as f:
         for entry in feed.entries:
             f.write(f"Title: {entry.get('title', 'No title')}\n")
             f.write(f"Link: {entry.get('link', 'No link')}\n")
@@ -36,8 +32,7 @@ def fetch_feed(name, url, output_dir):
             f.write("-" * 40 + "\n")
     print(f"✅ Saved {name} feed to {output_file}")
 
-def main(target_directory):
-    ensure_dir(target_directory)
+    target_directory.mkdir(exist_ok=True)
 
     for name, url in FEEDS.items():
         try:
@@ -47,8 +42,9 @@ def main(target_directory):
 
     print("🎉 Data collection complete!")
 
+
 # Optional: Support standalone running for testing
 if __name__ == "__main__":
-    today = datetime.date.today().isoformat()
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "data", today, "raw")
+    today = date.today().isoformat()
+    base_dir = Path(__file__).parent.parent / "data" / today / "raw"
     main(base_dir)

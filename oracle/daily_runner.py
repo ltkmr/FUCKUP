@@ -1,11 +1,11 @@
-import os
-import datetime
 import subprocess
-from iching import throw_coins, render_hexagram, hexagram_number, get_hexagram_info
-from data_fetcher import main as fetch_data
-import ollama
 import unicodedata
-import subprocess
+from datetime import datetime
+from pathlib import Path
+
+import ollama
+from data_fetcher import main as fetch_data
+from iching import get_hexagram_info, hexagram_number, render_hexagram, throw_coins
 
 DEBUG_MODE = False  # Set to False for normal daily runs
 MODEL_NAME = "gemma3:12b"  # Change this to "llama3", "custom-model", etc.
@@ -22,21 +22,23 @@ from prompts import (
 )
 
 # Prepare directories
-timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-base_dir = os.path.join(os.path.dirname(__file__), "..", "data", timestamp)
-archive_dir = os.path.join(os.path.dirname(__file__), "..", "archive")
-os.makedirs(base_dir, exist_ok=True)
-os.makedirs(archive_dir, exist_ok=True)
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+base_dir = Path(__file__).parent.parent / "data" / timestamp
+archive_dir = Path(__file__).parent.parent / ".." / "archive"
+
+base_dir.mkdir(parents=True, exist_ok=True)
+archive_dir.mkdir(parents=True, exist_ok=True)
 
 # Define subdirectories
-raw_data_dir = os.path.join(base_dir, "raw")
-compressed_data_dir = os.path.join(base_dir, "compressed")
-logs_dir = os.path.join(base_dir, "logs")
+raw_data_dir = base_dir / "raw"
+compressed_data_dir = base_dir / "compressed"
+logs_dir = base_dir / "logs"
 
 # Ensure they exist
-os.makedirs(raw_data_dir, exist_ok=True)
-os.makedirs(compressed_data_dir, exist_ok=True)
-os.makedirs(logs_dir, exist_ok=True)
+raw_data_dir.mkdir(parents=True, exist_ok=True)
+compressed_data_dir.mkdir(parents=True, exist_ok=True)
+logs_dir.mkdir(parents=True, exist_ok=True)
+
 
 # Step 1: Data Collection
 def collect_data():
@@ -71,8 +73,7 @@ def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
 
 
 # Step 5: Format printout
-def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation):
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     hexagram_unicode = chr(0x4DC0 + (number - 1))
     header = f"""
 ==========================================
@@ -111,9 +112,9 @@ def sanitize_for_printer(text):
 
 # Step 7: Archive the prophecy
 def archive_prophecy(text):
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
-    filename = os.path.join(archive_dir, f"{timestamp}.txt")
-    with open(filename, "w", encoding="utf-8") as f:
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+    filename = archive_dir / f"{timestamp}.txt"
+    with filename.open("w", encoding="utf-8") as f:
         f.write(text)
     print(f"📜 Prophecy archived at {filename}")
 
@@ -130,10 +131,10 @@ def print_prophecy(text):
 # Step 9: Show folder structure
 def print_folder_structure(base_path):
     print("\n📂 Current Data Directory Structure:")
-    for root, dirs, files in os.walk(base_path):
-        level = root.replace(base_path, '').count(os.sep)
+    for root, _, files in base_path.walk():
+        level = len(base_path.relative_to(root).parts)
         indent = " " * 4 * level
-        print(f"{indent}{os.path.basename(root)}/")
+        print(f"{indent}{root.name}/")
         sub_indent = " " * 4 * (level + 1)
         for f in files:
             print(f"{sub_indent}{f}")
@@ -163,11 +164,14 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
     print(f"🧩 {agent_name} input length: {len(dynamic_input)} characters")
 
     # Prepare logs folder
-    agent_log_file = os.path.join(logs_dir, f"{agent_name.replace(' ', '_').replace('🤖','').replace('🧙','').replace('🧭','').replace('🧩','').strip()}.txt")
-    os.makedirs(os.path.dirname(agent_log_file), exist_ok=True)
+    agent_path_name = (
+        agent_name.replace(" ", "_").replace("🤖", "").replace("🧙", "").replace("🧭", "").replace("🧩", "").strip()
+    )
+    agent_log_file: Path = (logs_dir / agent_path_name).with_suffix(".txt")
+    agent_log_file.mkdir(parents=True, exists_ok=True)
 
     # Log input
-    with open(agent_log_file, "w", encoding="utf-8") as f:
+    with agent_log_file.open("w", encoding="utf-8") as f:
         f.write("===== INPUT =====\n")
         f.write(dynamic_input.strip() + "\n\n")
 
@@ -184,7 +188,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
     output = clean_conversational_tails(output)
 
     # Log output
-    with open(agent_log_file, "a", encoding="utf-8") as f:
+    with agent_log_file.open("a", encoding="utf-8") as f:
         f.write("===== OUTPUT =====\n")
         f.write(output.strip() + "\n")
 
@@ -209,13 +213,11 @@ def main():
     print("🧩 Preparing raw data for compression...")
     raw_texts = []
 
-    for filename in os.listdir(raw_data_dir):
-        filepath = os.path.join(raw_data_dir, filename)
-        with open(filepath, "r", encoding="utf-8") as f:
+    for filename in raw_data_dir.iterdir():
+        filepath = raw_data_dir / filename
+        with filepath.open("r", encoding="utf-8") as f:
             raw_content = f.read()
             raw_texts.append(f"--- {filename} ---\n{safe_truncate(raw_content)}")
-
-    full_raw_input = "\n\n".join(raw_texts)
 
     print("✅ Raw data prepared.")
 
@@ -224,9 +226,9 @@ def main():
 
     compressed_chunks = []
 
-    for filename in os.listdir(raw_data_dir):
-        filepath = os.path.join(raw_data_dir, filename)
-        with open(filepath, "r", encoding="utf-8") as f:
+    for filename in raw_data_dir.iterdir():
+        filepath = raw_data_dir / filename
+        with filepath.open("r", encoding="utf-8") as f:
             raw_content = f.read()
 
         safe_input = safe_truncate(raw_content)
@@ -249,14 +251,14 @@ def main():
     compressed_data_summary = "\n".join(compressed_chunks)
 
     # Save the combined result
-    compressed_log = os.path.join(compressed_data_dir, "compressed_input.txt")
-    with open(compressed_log, "w", encoding="utf-8") as f:
+    compressed_log = compressed_data_dir / "compressed_input.txt"
+    with compressed_log.open("w", encoding="utf-8") as f:
         f.write(compressed_data_summary)
     print(f"🗂️ Combined compressed input saved to {compressed_log}")
 
     # Save compressed output for review
-    compressed_log = os.path.join(compressed_data_dir, "compressed_input.txt")
-    with open(compressed_log, "w", encoding="utf-8") as f:
+    compressed_log = compressed_data_dir / "compressed_input.txt"
+    with compressed_log.open("w", encoding="utf-8") as f:
         f.write(compressed_data_summary)
     print(f"🗂️ Compressed input saved to {compressed_log}")
 
