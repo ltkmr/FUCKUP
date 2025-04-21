@@ -9,6 +9,7 @@ venv/
 logs/
 archive/
 data/
+web/
 
 # Model files or temp data
 *.bin
