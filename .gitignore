@@ -1,0 +1,19 @@
+# Ignore Python cache and virtualenv
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Logs and run data
+*.log
+logs/
+archive/
+data/
+
+# Model files or temp data
+*.bin
+*.gguf
+
+# OS cruft
+.DS_Store
+
