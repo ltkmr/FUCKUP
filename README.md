@@ -26,6 +26,10 @@ The system runs fully automated, daily, via cron.
 
 Inspired by the fictional FUCKUP computer from Illuminatus!, but real.
 
+## Prohecy Page:
+
+https://ltkmr.github.io/FUCKUP/index.html
+
 ## ⚙️ System Architecture
 
 ```
