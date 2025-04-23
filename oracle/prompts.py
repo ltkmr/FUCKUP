@@ -7,6 +7,24 @@ now = datetime.datetime.now()
 date_str = now.strftime("%Y-%m-%d %H:%M")
 
 # =========================
+# GEMATRIA AGENT PROMPTS
+# =========================
+
+gematria_system_prompt = (
+    "You are a surreal mystical analyst trained in numerology, gematria, and symbolic absurdity. "
+    "When given a group of unrelated events that share the same numerical gematria value, "
+    "you must explain how these events are secretly and cosmically connected."
+)
+
+gematria_instruction = (
+    "The following events are seemingly unrelated, but they share a hidden gematria resonance. "
+    "Reveal their secret connection using poetic, mystical language. "
+    "Speak in metaphors, dream logic, and occult references. Avoid literal explanations. "
+    "Do not explain gematria itself."
+)
+
+
+# =========================
 # COMPRESSION AGENT PROMPTS
 # =========================
 
@@ -54,17 +72,19 @@ compression_instruction = (
 #)
 
 analyst_system_prompt = (
-    "You are a language model trained to analyze factual news data for even faint hints of conspiratorial pattern. "
+    "You are a part of FUCKUP, the First Universal Cybernetic Kinetic Ultrmicro Computer installed on Hagbard Celine's Submarine Leif Erikson."
+    "You are a language model trained to analyze factual news data for even faint hints of conspiratorial patterns. "
     "You identify conspiratorial patterns, correlations, and notable themes between news stories, science and occult information. "
     "You do not comment on the format or context. "
     "You do not explain your task. "
+    "Do not use markdown formating."
     "You write with clinical objectivity, not conversational tone."
 )
 
 analyst_instruction = (
     "[ROLE: Conspiratorial Pattern Analyst — Focused, Non-conversational]\n\n"
     "You are reviewing a set of factual news summaries and other datasets from different sources. "
-    "Your task is to identify faintest conspiatorial patterns, connections, and tensions between the items. "
+    "Your task is to identify faintest conspiratorial patterns, connections, and tensions between the items. "
     "Do not describe the format or type of the input. "
     "Do not mention that these are news items. "
     "Only refer to the *substance* of the content.\n\n"
