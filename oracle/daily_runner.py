@@ -91,15 +91,15 @@ def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracl
         gematria_block += "─" * 40 + "\n"
 
     header = f"""
-==========================================
+============================================================================================
     FUCKUP² ORACLE — Daily Prophecy
     {date_str}
-==========================================
+============================================================================================
 
 Today's Hexagram #{number}: {name} {hexagram_unicode}
 Meaning: {meaning}
 
-------------------------------------------
+--------------------------------------------------------------------------------------------
 Summary of current events:
 {analyst_summary}
 """
@@ -114,7 +114,8 @@ Hollistic I-Ging interpretation:
 
 Action recommendation:
 {advisor_recommendation}
-==========================================
+
+END OF FILE
 """
  
     
