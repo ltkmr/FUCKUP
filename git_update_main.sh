@@ -1,20 +1,29 @@
 #!/bin/bash
 set -e
 
-# Optional: activate virtualenv if you use one
-source venv/bin/activate 2>/dev/null || echo "⚠️ No venv found or activation skipped."
+echo "🌐 Updating main branch on GitHub..."
 
-# Set commit message with timestamp
-msg="🧭 Update on $(date '+%Y-%m-%d %H:%M:%S')"
+# Make sure we're in the root and on main
+cd "$(dirname "$0")"
+git checkout main
 
-# Git operations
+# Pull any remote changes first (rebase keeps history clean)
+echo "📥 Pulling latest changes from remote..."
+git pull --rebase origin main
+
+# Stage all local changes
 echo "📦 Staging changes..."
 git add .
 
-echo "✍️ Committing changes..."
-git commit -m "$msg" || echo "⚠️ Nothing new to commit."
+# Create commit (if needed)
+if git diff --cached --quiet; then
+  echo "✅ No changes to commit."
+else
+  git commit -m "🔄 Update project state $(date '+%Y-%m-%d %H:%M:%S')"
+fi
 
+# Push to GitHub
 echo "🚀 Pushing to main..."
 git push origin main
 
-echo "✅ Main branch updated successfully."
+echo "✅ Main branch is up to date."
