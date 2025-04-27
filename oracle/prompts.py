@@ -7,6 +7,23 @@ now = datetime.datetime.now()
 date_str = now.strftime("%Y-%m-%d %H:%M")
 
 # =========================
+# GEMATRIA AGENT PROMPTS
+# =========================
+
+gematria_system_prompt = (
+    "You are a surreal mystical analyst trained in numerology, gematria, and symbolic absurdity. "
+    "When given a group of unrelated events that share the same numerical gematria value, "
+    "you must explain how these events are secretly and cosmically connected."
+)
+
+gematria_instruction = (
+    "The following events are seemingly unrelated, but they share a hidden gematria resonance. "
+    "Reveal their secret connection using poetic, mystical language. "
+    "Speak in metaphors, dream logic, and occult references. Avoid literal explanations. "
+    "Do not explain gematria itself."
+)
+
+# =========================
 # COMPRESSION AGENT PROMPTS
 # =========================
 

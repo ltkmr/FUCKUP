@@ -3,14 +3,18 @@ import datetime
 import subprocess
 from iching import throw_coins, render_hexagram, hexagram_number, get_hexagram_info
 from data_fetcher import main as fetch_data
+from utils import gematria_value
+from collections import defaultdict
 import ollama
 import unicodedata
 import subprocess
 
 DEBUG_MODE = False  # Set to False for normal daily runs
-MODEL_NAME = "gemma3:4b"  # Change this to "llama3", "custom-model", etc.
+MODEL_NAME = "qwen2.5:3b"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
+    gematria_system_prompt,
+    gematria_instruction,
     compression_system_prompt,
     compression_instruction,
     analyst_system_prompt,
@@ -18,7 +22,7 @@ from prompts import (
     oracle_system_prompt,
     oracle_instruction,
     advisor_system_prompt,
-    advisor_instruction,
+    advisor_instruction
 )
 
 # Prepare directories
@@ -44,7 +48,7 @@ def collect_data():
         print("🛠️ Debug mode: Skipping data collection.")
     else:
         print("📰 Collecting data...")
-        fetch_data(raw_data_dir)
+        fetch_data(base_dir)
         print("✅ Data collected.")
 
 
@@ -61,9 +65,10 @@ def generate_iching():
 
 # Step 4: LLM helper
 
-def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
+def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME, temperature=0.7):
     response = ollama.chat(
         model=model_name,
+        # temperature=temperature,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -72,22 +77,37 @@ def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME):
     return response['message']['content'].strip()
 
 # Step 5: Format printout
-def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation):
+def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation, gematria_outputs=None):
     date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    gematria_block = ""
     hexagram_unicode = chr(0x4DC0 + (number - 1))
+    if gematria_outputs:
+        gematria_block += "\n✡ GEMATRIA SYNCHRONICITY ✡\n"
+    for result in gematria_outputs:
+        gematria_block += f"\n── Value {result['value']} ──\n"
+        for i, (title, summary) in enumerate(result['entries'], start=1):
+            gematria_block += f"{i}. {title}\n{summary}\n\n"
+        gematria_block += f"🔮 {result['message'].strip()}\n"
+        gematria_block += "─" * 40 + "\n"
+
     header = f"""
-BEGIN TRANSMISSION
 ============================================================================================
     FUCKUP² ORACLE — Daily Prophecy
     {date_str}
 ============================================================================================
 
-Hexagram #{number}: {name} {hexagram_unicode}
+Today's Hexagram #{number}: {name} {hexagram_unicode}
 Meaning: {meaning}
 
 --------------------------------------------------------------------------------------------
 Summary of current events:
 {analyst_summary}
+"""
+
+    if gematria_block:
+        header += f"\n{gematria_block}"
+
+    header += f"""
 
 Hollistic I-Ging interpretation:
 {oracle_message}
@@ -95,8 +115,9 @@ Hollistic I-Ging interpretation:
 Action recommendation:
 {advisor_recommendation}
 
-END OF TRANSMISSION
+END OF FILE
 """
+ 
     
     # 🛠️ Clean up lines and add form feed for printer
     safe_header = "\n".join(line.strip() for line in header.splitlines())
@@ -151,14 +172,12 @@ def clean_conversational_tails(text):
         "Do you want me to elaborate on any of these points or focus on a specific aspect of the news?"
         "I hope this summary is helpful!"
         "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!"
-        "Let me know if you'd like me to summarize any other section!"
-        "Let me know if you'd like me to extract any specific information or themes from these articles."
     ]
     lines = text.splitlines()
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
     return "\n".join(filtered_lines).strip()
 
-def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name, debug_message="DEBUG: Sample output."):
+def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name, temperature=0.7, debug_message="DEBUG: Sample output."):
     print(f"{agent_name} is processing...")
     print(f"🧩 {agent_name} input length: {len(dynamic_input)} characters")
 
@@ -179,6 +198,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
             output = run_llm(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
+                # temperature=temperature,
                 model_name=model_name
             )
         except Exception as e:
@@ -194,8 +214,41 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
 
     print(f"✅ {agent_name} completed. Logged to {agent_log_file}")
     return output
+# gematria helper
+def collect_gematria_collisions(raw_data_dir, max_length=150):
+    """
+    Scans raw summaries and groups short ones by their gematria value.
+    Returns a dict: { gematria_value: [ (title, summary) ] }
+    """
+    gematria_groups = defaultdict(list)
 
+    for filename in os.listdir(raw_data_dir):
+        filepath = os.path.join(raw_data_dir, filename)
+        if os.path.isdir(filepath):
+            continue
 
+        with open(filepath, "r", encoding="utf-8") as f:
+            entry_lines = []
+            title = None
+            summary = None
+
+            for line in f:
+                line = line.strip()
+                if line.startswith("Title:"):
+                    title = line[6:].strip()
+                elif line.startswith("Summary:"):
+                    summary = line[8:].strip()
+
+                if title and summary:
+                    if len(summary) < max_length:
+                        value = gematria_value(summary)
+                        gematria_groups[value].append((title, summary))
+                    title = None
+                    summary = None
+
+    # Filter only collisions (value occurs more than once)
+    collisions = {k: v for k, v in gematria_groups.items() if len(v) > 1}
+    return collisions
 
 def safe_truncate(text, max_chars=10000):
     """Truncate text to avoid overloading model input."""
@@ -203,12 +256,51 @@ def safe_truncate(text, max_chars=10000):
 
 # Main runner
 def main():
-    # Run agents
-    # Step 1: Collect data and prepare hexagram
+
+    # Collect data and prepare hexagram
     collect_data()
     lines, hexagram_text, number, name, meaning = generate_iching()
+    
+    # Check for gematria syncronicity
+    gematria_hits = collect_gematria_collisions(raw_data_dir)
+    if gematria_hits:
+        print(f"🔮 Found {len(gematria_hits)} Gematria synchronistic collisions!")
+        for val, items in gematria_hits.items():
+            print(f"✡ Value {val}: {len(items)} items")
+    else:
+        print("🕳️ No Gematria collisions today.")
 
-    # Step 2: Prepare data input (read raw feed files)
+    gematria_outputs = []
+
+    for value, entries in gematria_hits.items():
+        # Create a surreal input block for the agent
+        formatted = f"GEMATRIA VALUE: {value}\n\n"
+        for idx, (title, summary) in enumerate(entries, start=1):
+            formatted += f"{idx}. {title}\n{summary}\n\n"
+
+        surreal_revelation = run_agent(
+            f"🧿 Gematria Agent ({value})",
+            gematria_system_prompt,
+            gematria_instruction,
+            formatted.strip(),
+            model_name="qwen2.5:3b",
+            debug_message="DEBUG: Surreal gematria connection."
+        )
+
+        gematria_outputs.append({
+            "value": value,
+            "entries": entries,
+            "message": surreal_revelation
+        })
+        if gematria_outputs:
+            print("\n✡️ GEMATRIA SYNCHRONICITY ✡️")
+            for result in gematria_outputs:
+                print(f"\n── Gematria {result['value']} ──")
+                for i, (title, summary) in enumerate(result['entries'], start=1):
+                    print(f"{i}. {title} — {summary}")
+                print(f"\n🔮 {result['message']}\n")
+
+    # Prepare data input (read raw feed files)
     print("🧩 Preparing raw data for compression...")
     raw_texts = []
 
@@ -241,7 +333,7 @@ def main():
             compression_system_prompt,
             compression_instruction,
             safe_input,
-            model_name="gemma3:4b",
+            model_name="qwen2.5:3b",
             debug_message=f"DEBUG: Sample compression for {filename}"
         )
         if not DEBUG_MODE:
@@ -269,7 +361,8 @@ def main():
         analyst_system_prompt,
         analyst_instruction,
         compressed_data_summary,
-        model_name="gemma3:4b",  # ✅ Faster, leaner model
+        model_name="qwen2.5:3b",  # ✅ Faster, leaner model
+        temperature=0.1,
         debug_message="DEBUG: Sample analyst summary."
     )
 
@@ -278,12 +371,19 @@ def main():
         f"Analyst Summary:\n{analyst_summary}"
     )
 
+    if gematria_outputs:
+        oracle_dynamic_input += "\n\n✡ GEMATRIA REVELATIONS ✡\n"
+        for result in gematria_outputs:
+            oracle_dynamic_input += f"\n── Value {result['value']} ──\n"
+            oracle_dynamic_input += result['message'].strip() + "\n"
+
     oracle_message = run_agent(
         "🧙 Oracle Agent",
         oracle_system_prompt,
         oracle_instruction,
         oracle_dynamic_input,
-        model_name="gemma3:4b",  # ✅ Creative, rich model
+        model_name="qwen2.5:3b",  # ✅ Creative, rich model
+        temperature=0.5,
         debug_message="DEBUG: Sample Oracle Message."
     )
 
@@ -297,18 +397,17 @@ def main():
         advisor_system_prompt,
         advisor_instruction,
         advisor_dynamic_input,
-        model_name="gemma3:4b",  # ✅ Authoritative output
+        model_name="qwen2.5:3b",  # ✅ Authoritative output
         debug_message="DEBUG: Sample Advisor Recommendation."
     )
     # Format, archive, and print
-    formatted_output = format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation)
+    formatted_output = format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation, gematria_outputs=gematria_outputs)
     safe_output = sanitize_for_printer(formatted_output)
     archive_prophecy(formatted_output)
     print_prophecy(safe_output)
 
     print("🎉 Daily oracle cycle complete!")
     print_folder_structure(base_dir)
-
 
 if __name__ == "__main__":
     main()
