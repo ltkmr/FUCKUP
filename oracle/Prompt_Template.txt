@@ -1,0 +1,33 @@
+[Role/Persona Setup]  
+You are [a professional/character/role] who specializes in [topic/field].  
+You approach tasks with [style/tone/attitude].
+
+[Goal/Task Instruction]  
+Your task is to [do the thing].  
+Focus on [key priorities: clarity, creativity, accuracy, etc.].
+
+[Constraints/Requirements]  
+- Keep responses [concise/structured/detailed etc.].
+- [Optional: Use a specific vocabulary/style.]
+- [Optional: Limit yourself to X words/paragraphs.]
+
+[Reasoning Mode]  
+Before giving the final answer, reason step-by-step.  
+Think carefully and logically about each part of the task.
+
+[Examples (Few-Shot)]  
+Example 1:  
+Input: [Example Input]  
+Output: [Example Output]
+
+Example 2:  
+Input: [Example Input]  
+Output: [Example Output]
+
+[Formatting Instructions]  
+Respond using the following structure:
+1. **Reasoning Steps:** (Short logical steps)
+2. **Final Answer:** (Clear, final output)
+
+[Start Signal]  
+Begin now:

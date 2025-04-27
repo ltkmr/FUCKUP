@@ -8,7 +8,7 @@ import unicodedata
 import subprocess
 
 DEBUG_MODE = False  # Set to False for normal daily runs
-MODEL_NAME = "gemma3:12b"  # Change this to "llama3", "custom-model", etc.
+MODEL_NAME = "gemma3:4b"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
     compression_system_prompt,
@@ -76,15 +76,16 @@ def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracl
     date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     hexagram_unicode = chr(0x4DC0 + (number - 1))
     header = f"""
-==========================================
+BEGIN TRANSMISSION
+============================================================================================
     FUCKUP² ORACLE — Daily Prophecy
     {date_str}
-==========================================
+============================================================================================
 
 Hexagram #{number}: {name} {hexagram_unicode}
 Meaning: {meaning}
 
-------------------------------------------
+--------------------------------------------------------------------------------------------
 Summary of current events:
 {analyst_summary}
 
@@ -93,7 +94,8 @@ Hollistic I-Ging interpretation:
 
 Action recommendation:
 {advisor_recommendation}
-==========================================
+
+END OF TRANSMISSION
 """
     
     # 🛠️ Clean up lines and add form feed for printer
@@ -149,6 +151,8 @@ def clean_conversational_tails(text):
         "Do you want me to elaborate on any of these points or focus on a specific aspect of the news?"
         "I hope this summary is helpful!"
         "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!"
+        "Let me know if you'd like me to summarize any other section!"
+        "Let me know if you'd like me to extract any specific information or themes from these articles."
     ]
     lines = text.splitlines()
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
@@ -193,7 +197,7 @@ def run_agent(agent_name, system_prompt, instruction, dynamic_input, model_name,
 
 
 
-def safe_truncate(text, max_chars=100000):
+def safe_truncate(text, max_chars=10000):
     """Truncate text to avoid overloading model input."""
     return text[:max_chars]
 
@@ -237,7 +241,7 @@ def main():
             compression_system_prompt,
             compression_instruction,
             safe_input,
-            model_name="dolphin3:latest",
+            model_name="gemma3:4b",
             debug_message=f"DEBUG: Sample compression for {filename}"
         )
         if not DEBUG_MODE:
@@ -265,7 +269,7 @@ def main():
         analyst_system_prompt,
         analyst_instruction,
         compressed_data_summary,
-        model_name="dolphin3:latest",  # ✅ Faster, leaner model
+        model_name="gemma3:4b",  # ✅ Faster, leaner model
         debug_message="DEBUG: Sample analyst summary."
     )
 
@@ -279,7 +283,7 @@ def main():
         oracle_system_prompt,
         oracle_instruction,
         oracle_dynamic_input,
-        model_name="gemma3:12b",  # ✅ Creative, rich model
+        model_name="gemma3:4b",  # ✅ Creative, rich model
         debug_message="DEBUG: Sample Oracle Message."
     )
 
@@ -293,7 +297,7 @@ def main():
         advisor_system_prompt,
         advisor_instruction,
         advisor_dynamic_input,
-        model_name="gemma3:12b",  # ✅ Authoritative output
+        model_name="gemma3:4b",  # ✅ Authoritative output
         debug_message="DEBUG: Sample Advisor Recommendation."
     )
     # Format, archive, and print
