@@ -10,7 +10,7 @@ import unicodedata
 import subprocess
 
 DEBUG_MODE = False  # Set to False for normal daily runs
-MODEL_NAME = "qwen2.5:3b"  # Change this to "llama3", "custom-model", etc.
+MODEL_NAME = "qwen2.5"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
     gematria_system_prompt,
@@ -283,7 +283,7 @@ def main():
             gematria_system_prompt,
             gematria_instruction,
             formatted.strip(),
-            model_name="qwen2.5:3b",
+            model_name="qwen2.5",
             debug_message="DEBUG: Surreal gematria connection."
         )
 
@@ -333,7 +333,7 @@ def main():
             compression_system_prompt,
             compression_instruction,
             safe_input,
-            model_name="qwen2.5:3b",
+            model_name="qwen2.5",
             debug_message=f"DEBUG: Sample compression for {filename}"
         )
         if not DEBUG_MODE:
@@ -361,7 +361,7 @@ def main():
         analyst_system_prompt,
         analyst_instruction,
         compressed_data_summary,
-        model_name="qwen2.5:3b",  # ✅ Faster, leaner model
+        model_name="qwen2.5",  # ✅ Faster, leaner model
         temperature=0.1,
         debug_message="DEBUG: Sample analyst summary."
     )
@@ -382,7 +382,7 @@ def main():
         oracle_system_prompt,
         oracle_instruction,
         oracle_dynamic_input,
-        model_name="qwen2.5:3b",  # ✅ Creative, rich model
+        model_name="qwen2.5",  # ✅ Creative, rich model
         temperature=0.5,
         debug_message="DEBUG: Sample Oracle Message."
     )
@@ -397,7 +397,7 @@ def main():
         advisor_system_prompt,
         advisor_instruction,
         advisor_dynamic_input,
-        model_name="qwen2.5:3b",  # ✅ Authoritative output
+        model_name="qwen2.5",  # ✅ Authoritative output
         debug_message="DEBUG: Sample Advisor Recommendation."
     )
     # Format, archive, and print
