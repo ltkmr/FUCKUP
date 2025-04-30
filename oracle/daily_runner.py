@@ -9,8 +9,9 @@ import ollama
 import unicodedata
 import subprocess
 
+
 DEBUG_MODE = False  # Set to False for normal daily runs
-MODEL_NAME = "qwen2.5"  # Change this to "llama3", "custom-model", etc.
+MODEL_NAME = "llama3.1:warmer"  # Change this to "llama3", "custom-model", etc.
 
 from prompts import (
     gematria_system_prompt,
@@ -109,7 +110,7 @@ Summary of current events:
 
     header += f"""
 
-Hollistic I-Ging interpretation:
+Hollistic interpretation:
 {oracle_message}
 
 Action recommendation:
@@ -172,6 +173,10 @@ def clean_conversational_tails(text):
         "Do you want me to elaborate on any of these points or focus on a specific aspect of the news?"
         "I hope this summary is helpful!"
         "If you have any specific questions or need further details about a particular event mentioned in these articles, feel free to ask!"
+        "This list appears to be a collection of news articles from The Guardian's science section. There are three articles:"
+        "If you'd like me to summarize any of these articles or provide more information about them, please let me know!"
+        "This list appears to be a collection of news articles from various sources. There are two lists of articles:"
+        "If you'd like me to summarize any of these articles or provide more information about them, please let me know!"
     ]
     lines = text.splitlines()
     filtered_lines = [line for line in lines if not any(ending.lower() in line.lower() for ending in endings)]
@@ -283,7 +288,7 @@ def main():
             gematria_system_prompt,
             gematria_instruction,
             formatted.strip(),
-            model_name="qwen2.5",
+            model_name="llama3.1:warmer",
             debug_message="DEBUG: Surreal gematria connection."
         )
 
@@ -333,7 +338,7 @@ def main():
             compression_system_prompt,
             compression_instruction,
             safe_input,
-            model_name="qwen2.5",
+            model_name="llama3.1:warmer",
             debug_message=f"DEBUG: Sample compression for {filename}"
         )
         if not DEBUG_MODE:
@@ -361,7 +366,7 @@ def main():
         analyst_system_prompt,
         analyst_instruction,
         compressed_data_summary,
-        model_name="qwen2.5",  # ✅ Faster, leaner model
+        model_name="llama3.1:warmer",  # ✅ Faster, leaner model
         temperature=0.1,
         debug_message="DEBUG: Sample analyst summary."
     )
@@ -382,7 +387,7 @@ def main():
         oracle_system_prompt,
         oracle_instruction,
         oracle_dynamic_input,
-        model_name="qwen2.5",  # ✅ Creative, rich model
+        model_name="llama3.1:warmer",  
         temperature=0.5,
         debug_message="DEBUG: Sample Oracle Message."
     )
@@ -397,7 +402,7 @@ def main():
         advisor_system_prompt,
         advisor_instruction,
         advisor_dynamic_input,
-        model_name="qwen2.5",  # ✅ Authoritative output
+        model_name="llama3.1:warmer", 
         debug_message="DEBUG: Sample Advisor Recommendation."
     )
     # Format, archive, and print
