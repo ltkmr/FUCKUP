@@ -127,6 +127,25 @@ fuckup2/
 
  🎨 Web archive styling improvements
 
+ ## 🖲️ Hints:
+ Most small LLMs come with too small num_ctx parameters. Create a modelfile with enough space: 
+```
+ FROM [Your prefered LLM]
+# Parameters
+PARAMETER temperature 0.8
+PARAMETER top_p 0.7
+PARAMETER top_k 30
+PARAMETER num_ctx 7680
+PARAMETER num_predict 5632
+```
+Give it some space. Create a new Ollama network with:
+```
+ollama create [Name of new network] -f [name of modelfile]
+```
+
+
+
+
 📝 License:
 
 All rights wronged.
