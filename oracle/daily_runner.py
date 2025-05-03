@@ -255,7 +255,7 @@ def collect_gematria_collisions(raw_data_dir, max_length=150):
     collisions = {k: v for k, v in gematria_groups.items() if len(v) > 1}
     return collisions
 
-def safe_truncate(text, max_chars=10000):
+def safe_truncate(text, max_chars=15000):
     """Truncate text to avoid overloading model input."""
     return text[:max_chars]
 
