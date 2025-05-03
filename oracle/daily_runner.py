@@ -101,7 +101,9 @@ Today's Hexagram #{number}: {name} {hexagram_unicode}
 Meaning: {meaning}
 
 --------------------------------------------------------------------------------------------
-Summary of current events:
+
+<<<ANALYSIS_START>>>
+
 {analyst_summary}
 """
 
@@ -109,13 +111,17 @@ Summary of current events:
         header += f"\n{gematria_block}"
 
     header += f"""
+<<<ANALYSIS_COMPLETE>>>
 
-Hollistic interpretation:
+<<<INTERPRETATION_START>>>
+Holistic interpretation:
 {oracle_message}
+<<<INTERPRETATION_COMPLETE>>>
 
+<<<RECOMMANDATION_START>>>
 Action recommendation:
 {advisor_recommendation}
-
+<<<RECOMMANDATION_COMPLETE>>>
 END OF FILE
 """
  

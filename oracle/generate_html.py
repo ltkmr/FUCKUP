@@ -1,223 +1,194 @@
-# generate_html.py (cleaned up for web publishing)
-
 import os
-from html import escape
-from datetime import datetime
+import sys
+import re
 
-# Directories
-base_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-output_dir = os.path.join(os.path.dirname(__file__), "..", "web")
-archive_dir = os.path.join(os.path.dirname(__file__), "..", "archive")
+# --- Canonical Path Handling ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ARCHIVE_PATH = os.path.join(SCRIPT_DIR, "..", "archive")
+HTML_OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "web")
 
-os.makedirs(output_dir, exist_ok=True)
+# --- Step 1: Locate latest archive file ---
 
-# CSS styling
-STYLE_PATH = os.path.join(output_dir, "style.css")
-with open(STYLE_PATH, "w", encoding="utf-8") as f:
-    f.write("""
-body {
-  font-family: "Courier New", Courier, monospace;
-  max-width: 800px;
-  margin: 2em auto;
-  padding: 1em;
-  background: #eee;
-  color: #222;
-  line-height: 1.6;
-}
-header, footer {
-  text-align: center;
-  margin-bottom: 2em;
-}
-h1 {
-  font-size: 2em;
-  margin-bottom: 0.2em;
-}
-.date {
-  font-size: 0.9em;
-  color: #666;
-}
-pre {
-  background: #fff;
-  padding: 0.5em;
-  overflow-x: auto;
-  white-space: pre-wrap;
-}
-.gematria {
-  color: #800080;
-  text-align: center;
-  font-size: 1.3em;
-  margin: 2em 0 1em;
-}
-.gem-line {
-  background: #f9f6ff;
-  border-left: 4px solid #a55eea;
-  padding: 0.4em 1em;
-  font-family: monospace;
-  white-space: pre-wrap;
-  margin: 0.5em 0;
-}
-.divider {
-  border-top: 1px dashed #aaa;
-  margin: 2em 0;
-}
-.page-box {
-  background: #fff;
-  padding: 1em;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-  border-radius: 6px;
-}
-.logo {
-  width: 128px;
-  height: 128px;
-  object-fit: cover;
-  border-radius: 4px;
-  display: block;
-  margin: 0 auto 1em;
-}
-nav ul {
-  list-style: none;
-  padding: 0;
-}
-nav li {
-  margin: 0.3em 0;
-}
-""")
+def find_latest_timestamp(archive_path=ARCHIVE_PATH):
+    """Finds the newest archive file and extracts the timestamp."""
+    if not os.path.isdir(archive_path):
+        print(f"Error: Archive path '{archive_path}' not found.")
+        sys.exit(1)
 
-PAGE_TEMPLATE = """
-<!DOCTYPE html>
-<html lang=\"en\">
+    txt_files = [f for f in os.listdir(archive_path) if f.endswith('.txt')]
+    if not txt_files:
+        print(f"Error: No .txt files found in '{archive_path}'.")
+        sys.exit(1)
+
+    txt_files.sort()
+    latest_file = txt_files[-1]
+    timestamp_raw = latest_file.replace('.txt', '')
+    timestamp = timestamp_raw.replace('-', '_')  # Format: YYYY-MM-DD_HHMMSS
+
+    print(f"[INFO] Using timestamp from archive: {timestamp}")
+    return timestamp
+
+# --- Step 2: Extract divinatory metadata from archive file ---
+
+def extract_hexagram_data_from_archive(timestamp):
+    archive_filename = timestamp.replace('_', '-') + ".txt"
+    archive_path = os.path.join(ARCHIVE_PATH, archive_filename)
+
+    try:
+        with open(archive_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Match the hexagram line
+        match = re.search(r"Today's Hexagram #(\d+): (.+?)\s+[\u4DC0-\u4DFF]", content)
+        if not match:
+            raise ValueError("Hexagram line not found or improperly formatted.")
+
+        hexagram_number = match.group(1)
+        hexagram_title = match.group(2)
+
+        # Extract Segments
+        analysis_match = re.search(r"<<<ANALYSIS_START>>>\s*(.*?)\s*<<<ANALYSIS_COMPLETE>>>", content, re.DOTALL)
+        interpretation_match = re.search(r"<<<INTERPRETATION_START>>>\s*(.*?)\s*<<<INTERPRETATION_COMPLETE>>>", content, re.DOTALL)
+        recommendation_match = re.search(r"<<<RECOMMANDATION_START>>>\s*(.*?)\s*<<<RECOMMANDATION_COMPLETE>>>", content, re.DOTALL)
+
+        analysis = analysis_match.group(1).strip() if analysis_match else "N/A"
+        interpretation = interpretation_match.group(1).strip() if interpretation_match else "N/A"
+        recommendation_text = recommendation_match.group(1).strip() if recommendation_match else "N/A"
+
+        return {
+            "number": hexagram_number,
+            "title": hexagram_title,
+            "analysis": analysis,
+            "interpretation": interpretation,
+            "recommendation": recommendation_text
+        }
+
+    except Exception as e:
+        print(f"[ERROR] Failed to extract hexagram info: {e}")
+        sys.exit(1)
+
+# --- Step 3: Generate HTML output for hexagram ---
+
+def generate_hexagram_html(timestamp):
+    data = extract_hexagram_data_from_archive(timestamp)
+
+    filename = f"{timestamp}_hexagram-{data['number']}.html"
+    output_path = os.path.join(HTML_OUTPUT_PATH, filename)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    content = f"""<html>
 <head>
-  <meta charset=\"UTF-8\">
-  <title>{title}</title>
-  <link rel=\"stylesheet\" href=\"style.css\">
+    <title>FUCKUP Divination {timestamp}</title>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 40px;
+        }}
+        h1 {{
+            color: #444;
+        }}
+        h2 {{
+            margin-top: 30px;
+        }}
+        p {{
+            font-size: 18px;
+            line-height: 1.6;
+        }}
+    </style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="FUCKUP² Logo" class="logo" />
-    <h1>FUCKUP² Oracle Archive</h1>
-    <p class=\"date\">{date}</p>
-  </header>
-<main>
-  <div class="page-box">
-    {content}
-    <p><a href="index.html">&larr; Back to archive</a></p>
-  </div>
-</main>
-  <footer>
-    <p>Generated by the FUCKUP² divinatory engine.</p>
-  </footer>
+<h1>Hexagram {data['number']}: {data['title']}</h1>
+<p><strong>Divination performed on:</strong> {timestamp.replace('_', ' ')}</p>
+
+<h2>Analysis</h2>
+<p style="white-space: pre-line;">{data['analysis']}</p>
+
+<h2>Interpretation</h2>
+<p style="white-space: pre-line;">{data['interpretation']}</p>
+
+<h2>Recommendation</h2>
+<p style="white-space: pre-line;">{data['recommendation']}</p>
+
 </body>
-</html>
-"""
-
-def render_gematria_section(text):
-    lines = text.splitlines()
-    in_block = False
-    rendered = []
-    for line in lines:
-        if "✡ GEMATRIA SYNCHRONICITY ✡" in line:
-            in_block = True
-            rendered.append("<h2 class='gematria'>✡ Gematria Synchronicity ✡</h2>")
-            continue
-        if in_block:
-            if line.strip().startswith("==") or line.strip() == "":
-                in_block = False
-                rendered.append("<hr class='divider'>")
-            else:
-                rendered.append(f"<pre class='gem-line'>{escape(line)}</pre>")
-        else:
-            rendered.append(f"<pre>{escape(line)}</pre>")
-    return "\n".join(rendered)
-
-def create_page(filename):
-    archive_path = os.path.join(archive_dir, filename)
-
-    with open(archive_path, "r", encoding="utf-8") as src:
-        content = src.read()
-
-    html_content = render_gematria_section(content)
-
-    # Extract date string from filename
-    title = filename.replace(".txt", "")
-    for fmt in ("%Y-%m-%d-%H%M%S", "%Y-%m-%d_%H%M%S", "%Y-%m-%d"):
-        try:
-            date_obj = datetime.strptime(title, fmt)
-            break
-        except ValueError:
-            continue
-    else:
-        raise ValueError(f"Could not parse date from filename: {title}")
-
-    date_str = date_obj.strftime("%Y-%m-%d")
-
-    # Extract hexagram info
-    hexagram_line = next((line for line in content.splitlines() if line.strip().startswith("Today's Hexagram #")), "Hexagram")
-    hexagram_info = hexagram_line.replace("Today's Hexagram #", "").strip()
-    hexagram_info = hexagram_info.replace(":", "").replace(" ", "-")  # safe for filenames
-
-    output_filename = f"{date_str}-Hexagram-{hexagram_info}.html"
-    output_path = os.path.join(output_dir, output_filename)
-
-    # Reformat display date for the HTML content
-    try:
-        display_date = date_obj.strftime("%B %d, %Y — %H:%M")
-    except:
-        display_date = title
-
-    page_html = PAGE_TEMPLATE.format(title="FUCKUP² Prophecy", date=display_date, content=html_content)
+</html>"""
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(page_html)
+        f.write(content)
 
-    print(f"✅ Generated page: {output_filename}")
-    return output_filename
+    print(f"[INFO] Generated hexagram HTML: {output_path}")
 
-def create_index(pages):
-    index_path = os.path.join(output_dir, "index.html")
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write("""
-<!DOCTYPE html>
-<html lang=\"en\">
+# --- Step 4: Rebuild styled and reversed index.html ---
+
+def generate_index_html(html_path=HTML_OUTPUT_PATH):
+    if not os.path.isdir(html_path):
+        print(f"Error: HTML path '{html_path}' not found.")
+        sys.exit(1)
+
+    html_files = [f for f in os.listdir(html_path) if f.endswith('.html') and f != 'index.html']
+    html_files.sort(reverse=True)  # Show newest first
+
+    content = """<html>
 <head>
-  <meta charset=\"UTF-8\">
-  <title>FUCKUP² Archive Index</title>
-  <link rel=\"stylesheet\" href=\"style.css\">
+    <title>FUCKUP Divination Archive</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 40px;
+        }
+        h1 {
+            color: #222;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="FUCKUP² Logo" class="logo" />
-    <h1>FUCKUP² Oracle Archive</h1>
-    <p class=\"date\">All available prophecies</p>
-  </header>
-  <nav>
-    <ul>
-""")
-        for page in sorted(pages, reverse=True):
+<h1>FUCKUP Divination Archive</h1>
+<ul>
+"""
 
-            base = page.replace(".html", "")
-            short_slug = base.split("-", 4)[-1][:32] + "…" if "-" in base else ""
-            f.write(f"      <li><a href=\"{page}\">{base[:19]} — {short_slug}</a></li>\n")
-       
-        f.write("""
-    </ul>
-  </nav>
-  <footer>
-    <p>Powered by FUCKUP².</p>
-  </footer>
+    for file in html_files:
+        try:
+            basename = file.replace('.html', '')
+            timestamp_part, hexagram_part = basename.split('_hexagram-')
+            display_timestamp = timestamp_part.replace('_', ' ').replace('-', ':', 2).replace('-', ' ', 1)
+            hexagram_number = hexagram_part
+            title = f"Divination for {display_timestamp} — Hexagram {hexagram_number}"
+            content += f'  <li><a href="{file}">{title}</a></li>\n'
+        except ValueError:
+            content += f'  <li><a href="{file}">{file}</a></li>\n'
+
+    content += """</ul>
 </body>
-</html>
-""")
-    print(f"✅ Index page generated at {index_path}")
+</html>"""
 
-def main():
-    print("🌐 Generating HTML archive...")
-    pages = []
-    for filename in os.listdir(archive_dir):
-        if filename.endswith(".txt"):
-            html_file = create_page(filename)
-            pages.append(html_file)
-    create_index(pages)
-    print("✨ Web archive ready in /web")
+    index_path = os.path.join(html_path, "index.html")
+
+    with open(index_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"[INFO] Generated styled index HTML: {index_path}")
+
+# --- Entry Point ---
 
 if __name__ == "__main__":
-    main()
+    timestamp = find_latest_timestamp()
+    generate_hexagram_html(timestamp)
+    generate_index_html()
