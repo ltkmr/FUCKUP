@@ -4,3 +4,4 @@ chromadb
 sentence-transformers
 ollama
 feedparser
+hijri-converter

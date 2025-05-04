@@ -1,5 +1,10 @@
-# FUCKUP² — First Universal Cybernetic-Kinetic-Ultramicro-Programmer
-An automated cyber-occult oracle machine inspired by Robert Anton Wilson's Illuminatus! trilogy.
+# FUCKUP² — Techno-Divination Engine
+
+> Order is what you find after a successful fuckup.
+
+FUCKUP² - First Universal Cybernetic-Kinetic-Ultramicro-Programmer - is a local-first techno-divination system inspired by *Illuminatus!*, Discordian mysticism, and retrofuturist aesthetics.  
+It generates and prints (yes, paper) daily oracular readings using (a) local LLM(s), archives the results as styled HTML, and renders them in a submarine-inspired interface.
+
 
 ## 📜 Project Overview
 FUCKUP² is an automated, self-operating oracle system:
@@ -8,13 +13,15 @@ FUCKUP² is an automated, self-operating oracle system:
 
 🧙 Throws the I-Ging hexagram (with authentic Unicode representation)
 
+🧙 Attempts to find engish gematria syncronicities.
+
 🧩 Passes data through a chain of AI agents:
 
    - Compression Stage: Compression of incomming RSS feeds
 
    - Analyst Agent: Processes daily data
 
-   - Oracle Agent: Interprets divination + data cryptically
+   - Oracle Agent: Interprets divination + data cryptically, using current astronimical events.
 
    - Advisor Agent: Suggests action (enigmatic, of course!)
 
@@ -25,6 +32,15 @@ FUCKUP² is an automated, self-operating oracle system:
 🌐 Automatically updates a web archive for browsing prophecies
 
 The system runs fully automated, daily, via cron.
+
+## New feature:
+
+- Extracts metadata:
+  - Gregorian, Julian, Hijri date
+  - Moon phase
+  - Solar (zodiac) sign
+
+- All web output styled like it’s being served from an anarchist submarine
 
 ## ⚙️ System Architecture
 
@@ -54,7 +70,7 @@ The system runs fully automated, daily, via cron.
 
 🖨️ Printer via lp
 
-✍️ Static HTML + CSS archive
+✍️ Static HTML archive
 
 🧠 Local LLM (Gemma 3, Mistral, or others)
 
@@ -80,6 +96,8 @@ crontab -e
 # Add:
 0 7 * * * /path/to/venv/bin/python /path/to/fuckup2/oracle/daily_runner.py >> /path/to/fuckup2/oracle/cron.log 2>&1
 ```
+
+Debian users may try the bootstrap.sh file. Works about halfway on Macs with a little bit of addtitional aftercare.
 
 ## 🧩 Usage
 To manually run the oracle:
@@ -108,7 +126,7 @@ fuckup2/
 ├── venv/                     # Virtual environment (Python)
 └── README.md                 # This document
 ```
-## 🚀 Roadmap
+## 🐚 Future Ideas
  ✅ Automated daily oracle runs
 
  ✅ Archive per run (timestamped)
@@ -119,13 +137,13 @@ fuckup2/
 
  🗂️ Monthly trend analysis ("Book of the Month")
 
- 🧙‍♂️ Multi-agent logging for deeper analysis
+ 🖲️ Qdrant integration for deep memory fuctions.
 
- 🖲️ Manual invocation button for public use
+ ✅ Multi-agent logging for deeper analysis
 
  📡 Optional remote data sources and backups
 
- 🎨 Web archive styling improvements
+ ✅ Web archive styling improvements
 
  ## 🖲️ Hints:
  Most small LLMs come with too small num_ctx parameters. Create a modelfile with enough space: 
@@ -142,9 +160,6 @@ Give it some space. Create a new Ollama network with:
 ```
 ollama create [Name of new network] -f [name of modelfile]
 ```
-
-
-
 
 📝 License:
 
