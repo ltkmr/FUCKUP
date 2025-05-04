@@ -1,16 +1,13 @@
 import os
 import sys
 import re
+from hijri_converter import Gregorian
 
-# --- Canonical Path Handling ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ARCHIVE_PATH = os.path.join(SCRIPT_DIR, "..", "archive")
 HTML_OUTPUT_PATH = os.path.join(SCRIPT_DIR, "..", "web")
 
-# --- Step 1: Locate latest archive file ---
-
 def find_latest_timestamp(archive_path=ARCHIVE_PATH):
-    """Finds the newest archive file and extracts the timestamp."""
     if not os.path.isdir(archive_path):
         print(f"Error: Archive path '{archive_path}' not found.")
         sys.exit(1)
@@ -23,12 +20,10 @@ def find_latest_timestamp(archive_path=ARCHIVE_PATH):
     txt_files.sort()
     latest_file = txt_files[-1]
     timestamp_raw = latest_file.replace('.txt', '')
-    timestamp = timestamp_raw.replace('-', '_')  # Format: YYYY-MM-DD_HHMMSS
+    timestamp = timestamp_raw.replace('-', '_')
 
     print(f"[INFO] Using timestamp from archive: {timestamp}")
     return timestamp
-
-# --- Step 2: Extract divinatory metadata from archive file ---
 
 def extract_hexagram_data_from_archive(timestamp):
     archive_filename = timestamp.replace('_', '-') + ".txt"
@@ -38,7 +33,6 @@ def extract_hexagram_data_from_archive(timestamp):
         with open(archive_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Match the hexagram line
         match = re.search(r"Today's Hexagram #(\d+): (.+?)\s+[\u4DC0-\u4DFF]", content)
         if not match:
             raise ValueError("Hexagram line not found or improperly formatted.")
@@ -46,7 +40,9 @@ def extract_hexagram_data_from_archive(timestamp):
         hexagram_number = match.group(1)
         hexagram_title = match.group(2)
 
-        # Extract Segments
+        metadata_match = re.search(r"<<<METADATA_START>>>\s*(.*?)\s*<<<METADATA_END>>>", content, re.DOTALL)
+        metadata = metadata_match.group(1).strip() if metadata_match else "N/A"
+
         analysis_match = re.search(r"<<<ANALYSIS_START>>>\s*(.*?)\s*<<<ANALYSIS_COMPLETE>>>", content, re.DOTALL)
         interpretation_match = re.search(r"<<<INTERPRETATION_START>>>\s*(.*?)\s*<<<INTERPRETATION_COMPLETE>>>", content, re.DOTALL)
         recommendation_match = re.search(r"<<<RECOMMANDATION_START>>>\s*(.*?)\s*<<<RECOMMANDATION_COMPLETE>>>", content, re.DOTALL)
@@ -58,6 +54,8 @@ def extract_hexagram_data_from_archive(timestamp):
         return {
             "number": hexagram_number,
             "title": hexagram_title,
+            "glyph": chr(0x4DC0 + int(hexagram_number) - 1),
+            "metadata": metadata,
             "analysis": analysis,
             "interpretation": interpretation,
             "recommendation": recommendation_text
@@ -66,8 +64,6 @@ def extract_hexagram_data_from_archive(timestamp):
     except Exception as e:
         print(f"[ERROR] Failed to extract hexagram info: {e}")
         sys.exit(1)
-
-# --- Step 3: Generate HTML output for hexagram ---
 
 def generate_hexagram_html(timestamp):
     data = extract_hexagram_data_from_archive(timestamp)
@@ -78,48 +74,113 @@ def generate_hexagram_html(timestamp):
 
     content = f"""<html>
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
     <title>FUCKUP Divination {timestamp}</title>
     <style>
         body {{
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'IBM Plex Mono', monospace;
+            background-color: #0b1a1f;
+            color: #d0d0c0;
             margin: 40px;
-        }}
-        h1 {{
-            color: #444;
-        }}
-        h2 {{
-            margin-top: 30px;
-        }}
-        p {{
-            font-size: 18px;
             line-height: 1.6;
         }}
+        h1, h2 {{
+            color: #e3e3b5;
+            border-bottom: 1px dotted #3f4a4f;
+            padding-bottom: 0.2em;
+        }}
+        .glyph {{
+            font-size: 96px;
+            text-align: center;
+            color: #8fddff;
+            margin: 30px 0;
+        }}
+        .metadata {{
+            font-size: 14px;
+            color: #aaa;
+            text-align: center;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }}
+        a {{
+            color: #57e389;
+            text-decoration: none;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        .backlink {{
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+            color: #999;
+        }}
+        .section {{
+            margin-top: 40px;
+            padding: 10px;
+            border: 1px dashed #3f4a4f;
+            background-color: rgba(255,255,255,0.02);
+        }}
+        .section p {{
+            white-space: pre-line;
+            margin: 0;
+        }}
+        .oracle-header {{
+            font-size: 14px;
+            color: #777;
+            border-bottom: 1px dashed #3f4a4f;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }}
+        .container {{
+            max-width: 800px;
+            margin: 0 auto;
+        }}
+  
     </style>
 </head>
 <body>
+<div class=\"container\">
+<div class=\"oracle-header\">
+==============================<br>
+::FUCKUP² ORACLE STATION::<br>
+Subchannel: Depth Rituals<br>
+==============================
+</div>
+<div class=\"backlink\">
+  <a href=\"index.html\">&larr; Back to Archive Index</a>
+</div>
 <h1>Hexagram {data['number']}: {data['title']}</h1>
+<div class=\"glyph\">{data['glyph']}</div>
+<div class=\"metadata\">{data['metadata']}</div>
 <p><strong>Divination performed on:</strong> {timestamp.replace('_', ' ')}</p>
 
 <h2>Analysis</h2>
-<p style="white-space: pre-line;">{data['analysis']}</p>
+<div class=\"section\">
+  <p>{data['analysis']}</p>
+</div>
 
 <h2>Interpretation</h2>
-<p style="white-space: pre-line;">{data['interpretation']}</p>
+<div class=\"section\">
+  <p>{data['interpretation']}</p>
+</div>
 
 <h2>Recommendation</h2>
-<p style="white-space: pre-line;">{data['recommendation']}</p>
+<div class=\"section\">
+  <p>{data['recommendation']}</p>
+</div>
 
+<div class=\"backlink\">
+  <a href=\"index.html\">&larr; Back to Archive Index</a>
+</div>
+</div>
 </body>
 </html>"""
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"[INFO] Generated hexagram HTML: {output_path}")
-
-# --- Step 4: Rebuild styled and reversed index.html ---
+    print(f"[INFO] Generated full hexagram HTML: {output_path}")
 
 def generate_index_html(html_path=HTML_OUTPUT_PATH):
     if not os.path.isdir(html_path):
@@ -127,20 +188,24 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
         sys.exit(1)
 
     html_files = [f for f in os.listdir(html_path) if f.endswith('.html') and f != 'index.html']
-    html_files.sort(reverse=True)  # Show newest first
+    html_files.sort(reverse=True)
 
     content = """<html>
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
     <title>FUCKUP Divination Archive</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'IBM Plex Mono', monospace;
+            background-color: #0b1a1f;
+            color: #d0d0c0;
             margin: 40px;
+            line-height: 1.6;
         }
         h1 {
-            color: #222;
+            color: #e3e3b5;
+            border-bottom: 1px dotted #3f4a4f;
+            padding-bottom: 0.2em;
         }
         ul {
             list-style-type: none;
@@ -150,17 +215,35 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
             margin-bottom: 10px;
         }
         a {
-            color: #0066cc;
+            color: #57e389;
             text-decoration: none;
             font-size: 18px;
         }
         a:hover {
             text-decoration: underline;
         }
+        .section {
+            margin-top: 40px;
+            padding: 10px;
+            border: 1px dashed #3f4a4f;
+            background-color: rgba(255,255,255,0.02);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
+<div class=\"container\">
+<div class=\"oracle-header\">
+==============================<br>
+::FUCKUP² ORACLE STATION::<br>
+Subchannel: Depth Rituals<br>
+==============================
+</div>
 <h1>FUCKUP Divination Archive</h1>
+<div class=\"section\">
 <ul>
 """
 
@@ -176,6 +259,8 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
             content += f'  <li><a href="{file}">{file}</a></li>\n'
 
     content += """</ul>
+</div>
+</div>
 </body>
 </html>"""
 
@@ -185,8 +270,6 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
         f.write(content)
 
     print(f"[INFO] Generated styled index HTML: {index_path}")
-
-# --- Entry Point ---
 
 if __name__ == "__main__":
     timestamp = find_latest_timestamp()

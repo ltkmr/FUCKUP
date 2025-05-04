@@ -5,6 +5,7 @@ from iching import throw_coins, render_hexagram, hexagram_number, get_hexagram_i
 from data_fetcher import main as fetch_data
 from utils import gematria_value
 from collections import defaultdict
+from hijri_converter import Gregorian
 import ollama
 import unicodedata
 import subprocess
@@ -42,6 +43,70 @@ logs_dir = os.path.join(base_dir, "logs")
 os.makedirs(raw_data_dir, exist_ok=True)
 os.makedirs(compressed_data_dir, exist_ok=True)
 os.makedirs(logs_dir, exist_ok=True)
+
+# Calculate Moon Phase
+def get_islamic_date():
+    today = datetime.date.today()
+    hijri = Gregorian(today.year, today.month, today.day).to_hijri()
+    return f"{hijri.day} {hijri.month_name()} {hijri.year} AH"
+
+def get_sun_sign():
+    now = datetime.date.today()
+    m, d = now.month, now.day
+    date = (m, d)
+
+    signs = [
+        ((1, 20), (2, 18), "♒ Aquarius"),
+        ((2, 19), (3, 20), "♓ Pisces"),
+        ((3, 21), (4, 19), "♈ Aries"),
+        ((4, 20), (5, 20), "♉ Taurus"),
+        ((5, 21), (6, 20), "♊ Gemini"),
+        ((6, 21), (7, 22), "♋ Cancer"),
+        ((7, 23), (8, 22), "♌ Leo"),
+        ((8, 23), (9, 22), "♍ Virgo"),
+        ((9, 23), (10, 22), "♎ Libra"),
+        ((10, 23), (11, 21), "♏ Scorpio"),
+        ((11, 22), (12, 21), "♐ Sagittarius"),
+        ((12, 22), (1, 19), "♑ Capricorn"),
+    ]
+
+    for start, end, sign in signs:
+        if start <= date <= end or (start > end and (date >= start or date <= end)):
+            return sign
+    return "☀ Unknown"
+
+def get_moon_metadata():
+    """Returns moon phase name and Julian day."""
+    # Reference: known new moon on 2000-01-06
+    known_new_moon = datetime.datetime(2000, 1, 6, 18, 14)
+    lunation = 29.53058867
+
+    now = datetime.datetime.now()
+    diff = now - known_new_moon
+    days = diff.total_seconds() / 86400.0
+    julian_day = int(now.toordinal()) + 1721424.5
+
+    # Calculate current phase as days into lunation
+    phase = days % lunation
+    phase_index = int((phase / lunation) * 8)  # 8 moon phases
+
+    phase_names = [
+        "New Moon",
+        "Waxing Crescent",
+        "First Quarter",
+        "Waxing Gibbous",
+        "Full Moon",
+        "Waning Gibbous",
+        "Last Quarter",
+        "Waning Crescent"
+    ]
+
+    return {
+        "phase": phase_names[phase_index],
+        "julian": int(julian_day),
+        "hijri": get_islamic_date(),
+         "sun_sign": get_sun_sign()
+    }
 
 # Step 1: Data Collection
 def collect_data():
@@ -81,6 +146,7 @@ def run_llm(system_prompt, user_prompt, model_name=MODEL_NAME, temperature=0.7):
 def format_printout(number, name, meaning, hexagram_text, analyst_summary, oracle_message, advisor_recommendation, gematria_outputs=None):
     date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     gematria_block = ""
+    moon_meta = get_moon_metadata()
     hexagram_unicode = chr(0x4DC0 + (number - 1))
     if gematria_outputs:
         gematria_block += "\n✡ GEMATRIA SYNCHRONICITY ✡\n"
@@ -102,8 +168,14 @@ Meaning: {meaning}
 
 --------------------------------------------------------------------------------------------
 
-<<<ANALYSIS_START>>>
+<<<METADATA_START>>>
+Moon Phase: {moon_meta['phase']}
+Julian Day: {moon_meta['julian']}
+Islamic Date: {moon_meta['hijri']}
+Sun Sign: {moon_meta['sun_sign']}
+<<<METADATA_END>>>
 
+<<<ANALYSIS_START>>>
 {analyst_summary}
 """
 
@@ -114,12 +186,10 @@ Meaning: {meaning}
 <<<ANALYSIS_COMPLETE>>>
 
 <<<INTERPRETATION_START>>>
-Holistic interpretation:
 {oracle_message}
 <<<INTERPRETATION_COMPLETE>>>
 
 <<<RECOMMANDATION_START>>>
-Action recommendation:
 {advisor_recommendation}
 <<<RECOMMANDATION_COMPLETE>>>
 END OF FILE
@@ -167,6 +237,7 @@ def print_folder_structure(base_path):
     print()
 
 # Helpers
+
 def clean_conversational_tails(text):
     """Remove common conversational endings and phrases."""
     endings = [
