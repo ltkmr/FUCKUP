@@ -3,7 +3,7 @@
 > Order is what you find after a successful fuckup.
 
 FUCKUP² - First Universal Cybernetic-Kinetic-Ultramicro-Programmer - is a local-first techno-divination system inspired by *Illuminatus!*, Discordian mysticism, and retrofuturist aesthetics.  
-It generates and prints (yes, paper) daily oracular readings using (a) local LLM(s), archives the results as styled HTML, and renders them in a submarine-inspired interface.
+It generates and prints (yes, paper) daily oracular readings using (a) local LLM(s), archives the results as styled HTML, and renders them in a submarine-inspired web interface.
 
 
 ## 📜 Project Overview
@@ -33,9 +33,12 @@ FUCKUP² is an automated, self-operating oracle system:
 
 The system runs fully automated, daily, via cron.
 
+🌗 Philosophy
+Error and randomness are parts of the divine pattern recognition of oracles. In FUCKUP we treat machine learning outputs as ritual objects, bind randomness to structured archives and celebrate error as revelation. An evermore chaotic world must be faced with the structured chaos of the absurd. By interpreting everyday's doomscroll waterfall of events in a mind without sentience, we deploy a shield for the sentient minds of diviners. The hyperdimensional graph of the hidden layer becomes a prosthetic mystical source of divine knowledge. Absurdist AI becomes a new line of defense.
+
 ## New feature:
 
-- Extracts metadata:
+- Enriches web output with metadata:
   - Gregorian, Julian, Hijri date
   - Moon phase
   - Solar (zodiac) sign
@@ -106,13 +109,11 @@ source venv/bin/activate
 python oracle/daily_runner.py
 ```
 
-
 To regenerate the web archive:
 ```
 python oracle/generate_html.py
-Archives are stored in /archive/.
-Web pages are generated in /web/.
 ```
+
 ## 📂 Project Structure
 ```
 fuckup2/

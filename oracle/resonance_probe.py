@@ -10,9 +10,11 @@ def recall_similar_divinations(query_text, top_k=DEFAULT_TOP_K):
     client = get_client()
     vector = embed_text(query_text)
 
-    results = client.query_points(
+    print("DEBUG: Vector length =", len(vector), "| Type:", type(vector))
+
+    results = client.search(
         collection_name=COLLECTION_NAME,
-        vector=vector,
+        query_vector=vector,
         limit=top_k
     )
 
@@ -20,8 +22,8 @@ def recall_similar_divinations(query_text, top_k=DEFAULT_TOP_K):
     for i, hit in enumerate(results, start=1):
         payload = hit.payload
         print(f"\n#{i}: {payload.get('date', 'Unknown Date')} — Hexagram {payload.get('hexagram')} {payload.get('hexagram_name')}")
-        print(f"✦ Score: {hit.score:.4f}")
-        print(f"✦ Excerpt: {payload.get('oracle_excerpt', '')[:300]}...")
+        print(f"✶ Score: {hit.score:.4f}")
+        print(f"✶ Excerpt: {payload.get('oracle_excerpt', '')[:300]}...")
 
 if __name__ == "__main__":
     import sys

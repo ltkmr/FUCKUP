@@ -232,6 +232,14 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
             max-width: 800px;
             margin: 0 auto;
         }
+        .header-image {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .header-image img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -241,6 +249,9 @@ def generate_index_html(html_path=HTML_OUTPUT_PATH):
 ::FUCKUP² ORACLE STATION::<br>
 Subchannel: Depth Rituals<br>
 ==============================
+</div>
+<div class="header-image">
+  <img src="static/I-Ging.jpg" width="800" height="800" alt="Oracle Node Sigil">
 </div>
 <h1>FUCKUP Divination Archive</h1>
 <div class=\"section\">
