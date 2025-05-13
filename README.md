@@ -33,7 +33,8 @@ FUCKUP² is an automated, self-operating oracle system:
 
 The system runs fully automated, daily, via cron.
 
-🌗 Philosophy
+## 🌗 Philosophy
+
 Error and randomness are parts of the divine pattern recognition of oracles. In FUCKUP we treat machine learning outputs as ritual objects, bind randomness to structured archives and celebrate error as revelation. An evermore chaotic world must be faced with the structured chaos of the absurd. By interpreting everyday's doomscroll waterfall of events in a mind without sentience, we deploy a shield for the sentient minds of diviners. The hyperdimensional graph of the hidden layer becomes a prosthetic mystical source of divine knowledge. Absurdist AI becomes a new line of defense.
 
 ## New feature:
