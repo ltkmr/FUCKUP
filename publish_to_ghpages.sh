@@ -6,6 +6,8 @@ REPO_DIR=$(pwd)
 WEB_DIR="$REPO_DIR/web"
 BRANCH="gh-pages"
 TMP_DIR="$REPO_DIR/.gh-pages-temp"
+TMP_NAME=$(basename "$TMP_DIR")
+GIT_WORKTREE_DIR="$REPO_DIR/.git/worktrees/$TMP_NAME"
 
 echo "📦 Preparing to publish $WEB_DIR to GitHub Pages..."
 
@@ -15,16 +17,25 @@ if [ ! -d "$WEB_DIR" ]; then
   exit 1
 fi
 
-# === 2. Clean up stale worktree references ===
+# === 2. Clean up old or broken worktree state ===
+echo "🧼 Cleaning up stale Git worktree references..."
 git worktree prune
 
-# === 3. Remove leftover worktree folder if it exists ===
-rm -rf "$TMP_DIR"
+if [ -d "$GIT_WORKTREE_DIR" ]; then
+  echo "⚰️  Removing stale metadata from .git/worktrees/$TMP_NAME..."
+  rm -rf "$GIT_WORKTREE_DIR"
+fi
 
-# === 4. Check if branch exists remotely ===
+if [ -d "$TMP_DIR" ]; then
+  echo "🧹 Removing leftover temp directory..."
+  rm -rf "$TMP_DIR"
+fi
+
+# === 3. Sync local branch to remote before worktree is created ===
 if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
-  echo "📥 Remote branch '$BRANCH' exists. Checking it out..."
+  echo "📥 Remote branch '$BRANCH' exists. Syncing and checking out..."
   git fetch origin "$BRANCH"
+  git branch -f "$BRANCH" "origin/$BRANCH"
   git worktree add "$TMP_DIR" "$BRANCH"
 else
   echo "🌱 Remote branch '$BRANCH' does not exist. Creating it..."
@@ -36,12 +47,17 @@ else
   )
 fi
 
-# === 5. Copy web contents ===
-echo "🧹 Cleaning existing files..."
+# === 4. Copy web contents ===
+echo "🧹 Cleaning existing files in worktree..."
 rm -rf "$TMP_DIR"/*
 
 echo "📁 Copying files to branch worktree..."
+shopt -s dotglob  # Include dotfiles like .nojekyll
 cp -r "$WEB_DIR"/* "$TMP_DIR"
+shopt -u dotglob
+
+# === 5. Optional: Add .nojekyll to bypass GitHub’s Jekyll processing
+touch "$TMP_DIR/.nojekyll"
 
 # === 6. Commit and push ===
 cd "$TMP_DIR"
@@ -51,7 +67,7 @@ git push origin "$BRANCH"
 
 # === 7. Cleanup ===
 cd "$REPO_DIR"
-git worktree remove "$TMP_DIR"
+git worktree remove --force "$TMP_DIR"
 rm -rf "$TMP_DIR"
 
 echo "✅ GitHub Pages updated successfully on branch '$BRANCH'."
